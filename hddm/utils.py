@@ -15,6 +15,8 @@ import warnings
 from scipy.stats import scoreatpercentile
 from scipy.stats.mstats import mquantiles
 
+# Note: Changes to check_params_valid to replace 'sz' with 'sa - Blair S. 12/15/2022
+
 # Simply alias for exec function, to make the function call more expressive for a
 # single use case (define custom likelihoods)
 make_likelihood_fun_from_str = exec
@@ -566,17 +568,20 @@ def check_params_valid(**params):
     t = params.get("t")
     sv = params.get("sv", 0)
     st = params.get("st", 0)
-    sz = params.get("sz", 0)
+   # sz = params.get("sz", 0)
+    sa = params.get("sa", 0)
 
     if (
         (sv < 0)
         or (a <= 0)
         or (z < 0)
         or (z > 1)
-        or (sz < 0)
-        or (sz > 1)
-        or (z + sz / 2.0 > 1)
-        or (z - sz / 2.0 < 0)
+        or (sa < 0)
+        or (a - sa < 0)
+        #or (sz < 0)
+        #or (sz > 1)
+        #or (z + sz / 2.0 > 1)
+        #or (z - sz / 2.0 < 0)
         or (t - st / 2.0 < 0)
         or (t < 0)
         or (st < 0)
