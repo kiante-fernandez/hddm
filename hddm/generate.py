@@ -9,7 +9,6 @@ from hddm.simulators.basic_simulator import *
 
 # Note: Replaced sz with sa - Blair S. 12/15/2022
 
-
 def gen_single_params_set(include=()):
     """Returns a dict of DDM parameters with random values for a singel conditin
     the function is used by gen_rand_params.
