@@ -7,6 +7,8 @@ from scipy.stats import uniform, norm
 from copy import copy
 from hddm.simulators.basic_simulator import *
 
+# Note: Replaced sz with sa - Blair S. 12/15/2022
+
 
 def gen_single_params_set(include=()):
     """Returns a dict of DDM parameters with random values for a singel conditin
@@ -19,7 +21,7 @@ def gen_single_params_set(include=()):
 
                 * 'z' (bias, default=0.5)
                 * 'sv' (inter-trial drift variability)
-                * 'sz' (inter-trial bias variability)
+                * 'sa' (inter-trial boundary variability)
                 * 'st' (inter-trial non-decision time variability)
 
                 Special arguments are:
@@ -29,12 +31,12 @@ def gen_single_params_set(include=()):
     """
     params = {}
     if include == "all":
-        include = ["z", "sv", "sz", "st"]
+        include = ["z", "sv", "sa", "st"]
     elif include == "all_inter":
-        include = ["sv", "sz", "st"]
+        include = ["sv", "sa", "st"]
 
     params["sv"] = 2.5 * rand() if "sv" in include else 0
-    params["sz"] = rand() * 0.4 if "sz" in include else 0
+    params["sa"] = rand() * 2.0 if "sa" in include else 0
     params["st"] = rand() * 0.35 if "st" in include else 0
     params["z"] = 0.4 + rand() * 0.2 if "z" in include else 0.5
 
@@ -62,7 +64,7 @@ def gen_rand_params(include=(), cond_dict=None, seed=None):
 
             * 'z' (bias, default=0.5)
             * 'sv' (inter-trial drift variability)
-            * 'sz' (inter-trial bias variability)
+            * 'sa' (inter-trial boundary variability)
             * 'st' (inter-trial non-decision time variability)
 
             Special arguments are:
@@ -182,8 +184,8 @@ def gen_rts(
         params["z"] = 0.5
     if "sv" not in params:
         params["sv"] = 0
-    if "sz" not in params:
-        params["sz"] = 0
+    if "sa" not in params:
+        params["sa"] = 0
 
     # check sample
     if isinstance(
@@ -204,7 +206,7 @@ def gen_rts(
             params["sv"],
             params["a"],
             params["z"],
-            params["sz"],
+            params["sa"],
             params["t"],
             params["st"],
             size,
@@ -249,7 +251,6 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
     if samples is None:
         samples = 1
     nn = 1000
-    a = params["a"]
     v = params["v"]
 
     if "v_switch" in params:
@@ -269,14 +270,17 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
     else:
         start_delay = np.ones(samples) * params["t"]
 
-    # create starting_points
-    if "sz" in params:
-        starting_points = (
-            uniform.rvs(loc=params["z"], scale=params["sz"], size=samples)
-            - params["sz"] / 2.0
-        ) * a
+    # create boundary separation
+    if "sa" in params:
+        a = (
+            uniform.rvs(loc=params["a"], scale=params["sa"], size=samples)
+            - params["sa"] / 2.0
+        )
     else:
-        starting_points = np.ones(samples) * params["z"] * a
+        a = params["a"]
+
+    # create starting_points
+    starting_points = np.ones(samples) * params["z"] * a
 
     rts = np.empty(samples)
     step_size = np.sqrt(dt) * intra_sv
@@ -355,23 +359,26 @@ def pdf_with_params(rt, params):
     v = params["v"]
     V = params["sv"]
     z = params["z"]
-    Z = params["sz"]
+    #Z = params["sz"]
     t = params["t"]
     T = params["st"]
     a = params["a"]
+    A = params["sa"]
     return hddm.wfpt.full_pdf(
         rt,
         v=v,
         V=V,
         a=a,
+        A=A,
         z=z,
-        Z=Z,
+        #Z=Z,
         t=t,
         T=T,
         err=1e-4,
         n_st=2,
-        n_sz=2,
-        use_adaptive=1,
+        #n_sz=2,
+        n_sa=2,
+        use_adaptive=0,
         simps_err=1e-3,
     )
 
@@ -394,12 +401,13 @@ def _gen_rts_from_cdf(params, samples=1000):
     v = params["v"]
     V = params["sv"]
     z = params["z"]
-    Z = params["sz"]
+    #Z = params["sz"]
     t = params["t"]
     T = params["st"]
     a = params["a"]
+    A = params["A"]
     return hddm.likelihoods.wfpt.ppf(
-        np.random.rand(samples), args=(v, V, a, z, Z, t, T)
+        np.random.rand(samples), args=(v, V, a, A, z, t, T) #Z, t, T)
     )
 
 
@@ -455,11 +463,12 @@ def gen_rand_data(params=None, n_fast_outliers=0, n_slow_outliers=0, **kwargs):
         "t": (0, inf),
         "st": (0, inf),
         "sv": (0, inf),
-        "sz": (0, 1),
+        #"sz": (0, 1),
+        "sa": (0, inf)
     }
 
     if "share_noise" not in kwargs:
-        kwargs["share_noise"] = set(["a", "v", "t", "st", "sz", "sv", "z"])
+        kwargs["share_noise"] = set(["a", "v", "t", "st", "sz", "sv", "z"]) #"sz", "sv", "z"])
 
     # Create RT data
     data, subj_params = kabuki.generate.gen_rand_data(

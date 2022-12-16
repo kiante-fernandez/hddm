@@ -12,22 +12,23 @@ np.seterr(divide="ignore")
 
 import hddm
 
-
 def wiener_like_contaminant(
     value,
     cont_x,
     v,
     sv,
     a,
+    sa,
     z,
-    sz,
+    #sz,
     t,
     st,
     t_min,
     t_max,
     err,
     n_st,
-    n_sz,
+    #n_sz,
+    n_sa,
     use_adaptive,
     simps_err,
 ):
@@ -38,14 +39,16 @@ def wiener_like_contaminant(
         v,
         sv,
         a,
-        z,
         sa,
+        z,
+        #sz,
         t,
         st,
         t_min,
         t_max,
         err,
         n_st,
+        #n_sz,
         n_sa,
         use_adaptive,
         simps_err,
@@ -57,22 +60,24 @@ WienerContaminant = stochastic_from_dist(
 )
 
 
-def general_WienerCont(err=1e-4, n_st=2, n_sz=2, use_adaptive=1, simps_err=1e-3):
-    _like = lambda value, cont_x, v, sv, a, z, sz, t, st, t_min, t_max, err=err, n_st=n_st, n_sz=n_sz, use_adaptive=use_adaptive, simps_err=simps_err: wiener_like_contaminant(
+def general_WienerCont(err=1e-4, n_st=2, n_sa=2, use_adaptive=1, simps_err=1e-3):
+    _like = lambda value, cont_x, v, sv, a, sa, z, t, st, t_min, t_max, err=err, n_st=n_st, n_sa=n_sa, use_adaptive=use_adaptive, simps_err=simps_err: wiener_like_contaminant(
         value,
         cont_x,
         v,
         sv,
         a,
+        sa,
         z,
-        sz,
+        #sz,
         t,
         st,
         t_min,
         t_max,
         err=err,
         n_st=n_st,
-        n_sz=n_sz,
+        #n_sz=n_sz,
+        n_sa=n_sa,
         use_adaptive=use_adaptive,
         simps_err=simps_err,
     )
@@ -106,18 +111,19 @@ def generate_wfpt_stochastic_class(
         wiener_params = {
             "err": 1e-4,
             "n_st": 2,
-            "n_sz": 2,
-            "use_adaptive": 0,
+            #"n_sz": 2,
+            "n_sa": 2,
+            "use_adaptive": 1,
             "simps_err": 1e-3,
             "w_outlier": 0.1,
         }
     wp = wiener_params
 
     # create likelihood function
-    def wfpt_like(x, v, sv, a, z, sz, t, st, p_outlier=0):
+    def wfpt_like(x, v, sv, a, sa, z, t, st, p_outlier=0):
         if x["rt"].abs().max() < 998:
             return hddm.wfpt.wiener_like(
-                x["rt"].values, v, sv, a, z, sz, t, st, p_outlier=p_outlier, **wp
+                x["rt"].values, v, sv, a, sa, z, t, st, p_outlier=p_outlier, **wp
             )
         else:  # for missing RTs. Currently undocumented.
             noresponse = x["rt"].abs() >= 999
@@ -127,8 +133,9 @@ def generate_wfpt_stochastic_class(
                 v,
                 sv,
                 a,
+                sa,
                 z,
-                sz,
+                #sz,
                 t,
                 st,
                 p_outlier=p_outlier,
@@ -206,7 +213,8 @@ def generate_wfpt_stochastic_class(
 
             if add_model:
                 if (
-                    (self.parents.value["sz"] == 0)
+                    #(self.parents.value["sz"] == 0)
+                    (self.parents.value["sa"] == 0)
                     and (self.parents.value["sv"] == 0)
                     and (self.parents.value["st"] == 0)
                 ):
