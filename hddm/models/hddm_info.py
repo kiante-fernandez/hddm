@@ -68,7 +68,7 @@ class HDDM(HDDMBase):
             'include' argument, then it is estimated from the data and the value passed
             using the p_outlier argument is ignored.
 
-        default_intervars : dict <default = {'sz': 0, 'st': 0, 'sv': 0}>
+        default_intervars : dict <default = {'sa': 0, 'st': 0, 'sv': 0}>
             Fix intertrial variabilities to a certain value. Note that this will only
             have effect for variables not estimated from the data.
 
@@ -92,7 +92,7 @@ class HDDM(HDDMBase):
          :Parameters:
              * err: Error bound for wfpt <default=1e-4>
              * n_st: Maximum depth for numerical integration for st <default=2>
-             * n_sz: Maximum depth for numerical integration for Z <default=2>
+             * n_sa: Maximum depth for numerical integration for A <default=2>
              * use_adaptive: Whether to use adaptive numerical integration <default=True>
              * simps_err: Error bound for Simpson integration <default=1e-3>
 
@@ -134,7 +134,7 @@ class HDDM(HDDMBase):
                 "t": 0.01,
                 "a_std": 1,
                 "t_std": 0.15,
-                "sz": 1.1,
+                "sa": 1.1,
                 "v": 1.5,
                 "st": 0.1,
                 "sv": 3,
@@ -447,9 +447,10 @@ class HDDM(HDDMBase):
             knodes["sv_bottom"] = Knode(
                 pm.HalfNormal, "sv", tau=2**-2, value=1, depends=self.depends["sv"]
             )
-        if "sz" in include:
-            knodes["sz_bottom"] = Knode(
-                pm.Beta, "sz", alpha=1, beta=3, value=0.01, depends=self.depends["sz"]
+        if "sa" in include:
+            knodes["sa_bottom"] = Knode(
+                #pm.Beta, "sa", alpha=1, beta=3, value=0.01, depends=self.depends["sa"]
+                pm.HalfNormal, "sa", tau=2**-2, value=1, depends=self.depends["sa"] # note think about prior at some point
             )
         if "st" in include:
             knodes["st_bottom"] = Knode(
@@ -502,9 +503,9 @@ class HDDM(HDDMBase):
                 value=1,
                 depends=self.depends["sv"],
             )
-        if "sz" in include:
-            knodes["sz_bottom"] = Knode(
-                pm.Beta, "sz", alpha=1, beta=1, value=0.01, depends=self.depends["sz"]
+        if "sa" in include:
+            knodes["sa_bottom"] = Knode(
+                pm.HalfNormal, "sa", tau=2**-2, value=1, depends=self.depends["sa"] # note think about prior at some point
             )
         if "st" in include:
             knodes["st_bottom"] = Knode(
@@ -541,7 +542,7 @@ class HDDM(HDDMBase):
                 self.mc.use_step_method(steps.kNormalNormal, node)
             else:
                 knode_name = node_descr["knode_name"].replace("_subj", "")
-                if knode_name in ["st", "sv", "sz"]:
+                if knode_name in ["st", "sv", "sa"]:
                     left = 0
                 else:
                     left = None

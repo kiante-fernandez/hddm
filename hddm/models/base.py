@@ -60,7 +60,7 @@ class AccumulatorModel(kabuki.Hierarchical):
             if (
                 ("sv" in self.include)
                 or ("st" in self.include)
-                or ("sz" in self.include)
+                or ("sa" in self.include)
             ):
                 self.model = "full_ddm"
                 print("Set model to full_ddm")
@@ -1277,14 +1277,14 @@ class HDDMBase(AccumulatorModel):
     ):
 
         self.default_intervars = kwargs.pop(
-            "default_intervars", {"sz": 0, "st": 0, "sv": 0}
+            "default_intervars", {"sa": 0, "st": 0, "sv": 0}
         )
 
         self._kwargs = kwargs
         # Check if self has model attribute
         if not hasattr(self, "model"):
             print("No model attribute --> setting up standard HDDM")
-            if ("st" in include) or ("sz" in include) or ("sv" in include):
+            if ("st" in include) or ("sa" in include) or ("sv" in include):
                 self.model = "full_ddm_vanilla"
             else:
                 self.model = "ddm_vanilla"
@@ -1307,7 +1307,7 @@ class HDDMBase(AccumulatorModel):
                 if include == "all":
                     [
                         self.include.add(param)
-                        for param in ("z", "st", "sv", "sz", "p_outlier")
+                        for param in ("z", "st", "sv", "sa", "p_outlier")
                     ]
                 elif isinstance(include, str):
                     self.include.add(include)
@@ -1340,7 +1340,7 @@ class HDDMBase(AccumulatorModel):
                 "t",
                 "z",
                 "st",
-                "sz",
+                "sa",
                 "sv",
                 "p_outlier",
                 "alpha",
@@ -1363,8 +1363,8 @@ class HDDMBase(AccumulatorModel):
             self.wiener_params = {
                 "err": 1e-4,
                 "n_st": 2,
-                "n_sz": 2,
-                "use_adaptive": 1,
+                "n_sa": 2,
+                "use_adaptive": 0,
                 "simps_err": 1e-3,
                 "w_outlier": 0.1,
             }
@@ -1456,10 +1456,10 @@ class HDDMBase(AccumulatorModel):
                 if "sv" in self.include
                 else self.default_intervars["sv"]
             )
-            wfpt_parents["sz"] = (
-                knodes["sz_bottom"]
-                if "sz" in self.include
-                else self.default_intervars["sz"]
+            wfpt_parents["sa"] = (
+                knodes["sa_bottom"]
+                if "sa" in self.include
+                else self.default_intervars["sa"]
             )
             wfpt_parents["st"] = (
                 knodes["st_bottom"]

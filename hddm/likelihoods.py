@@ -86,7 +86,7 @@ def general_WienerCont(err=1e-4, n_st=2, n_sa=2, use_adaptive=1, simps_err=1e-3)
 
 
 def generate_wfpt_stochastic_class(
-    wiener_params=None, sampling_method="cssm", cdf_range=(-5, 5), sampling_dt=1e-4
+    wiener_params=None, sampling_method="cdf", cdf_range=(-5, 5), sampling_dt=1e-4
 ):
     """
     create a wfpt stochastic class by creating a pymc nodes and then adding quantile functions.

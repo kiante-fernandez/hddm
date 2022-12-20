@@ -38,7 +38,7 @@ class DDM(HasTraits):
     """Drift diffusion model"""
     # Paremeters
     z = Range(0, 1., .5)
-    sz = Range(0, 1., .0)
+    sa = Range(0, 1., .0)
     v = Range(-4.,4.,.5)
     sv = Range(0.0,2.,0.0)
     ter = Range(0,2.,.3)
@@ -50,7 +50,7 @@ class DDM(HasTraits):
     intra_sv = Range(0.1,10.,1.)
     urgency = Range(.1,10.,1.)
 
-    params = Property(Array, depends_on=['z', 'sz', 'v', 'sv', 'ter', 'ster', 'a']) #, 'switch', 't_switch', 'v_switch', 'intra_sv'])
+    params = Property(Array, depends_on=['z', 'sa', 'v', 'sv', 'ter', 'ster', 'a']) #, 'switch', 't_switch', 'v_switch', 'intra_sv'])
 
     # Distributions
     drifts = Property(Tuple, depends_on=['params'])
@@ -70,10 +70,10 @@ class DDM(HasTraits):
     iter_plot = Int(50)
     # Number of histogram bins
     bins = Int(200)
-    view = View('z', 'sz', 'v', 'sv', 'ter', 'ster', 'a', 'num_samples', 'iter_plot') #, 'switch', 't_switch', 'v_switch', 'intra_sv', 'T')
+    view = View('z', 'sa', 'v', 'sv', 'ter', 'ster', 'a', 'num_samples', 'iter_plot') #, 'switch', 't_switch', 'v_switch', 'intra_sv', 'T')
 
     def _get_params_dict(self):
-        d = {'v': self.v, 'sv': self.sv, 'z': self.z, 'sz': self.sz, 't': self.ter, 'st': self.ster, 'a': self.a}
+        d = {'v': self.v, 'sv': self.sv, 'z': self.z, 'sa': self.sa, 't': self.ter, 'st': self.ster, 'a': self.a}
         if self.switch:
             d['v_switch'] = self.v_switch
             d['t_switch'] = self.t_switch
@@ -101,7 +101,7 @@ class DDM(HasTraits):
         return n / db / (n.sum())
 
     def _get_params(self):
-        return np.array([self.a, self.v, self.ter, self.sz, self.sv, self.ster])
+        return np.array([self.a, self.v, self.ter, self.sa, self.sv, self.ster])
 
 
 class DDMPlot(HasTraits):
@@ -199,7 +199,7 @@ class DDMPlot(HasTraits):
         pdf = hddm.wfpt.pdf_array(self.x_analytical,
                                   self.parameters.v, self.parameters.sv,
                                   self.parameters.a, self.parameters.z,
-                                  self.parameters.sz, self.parameters.ter,
+                                  self.parameters.sa, self.parameters.ter,
                                   self.parameters.ster, 1e-4, logp=False)
         return pdf
 
@@ -209,7 +209,7 @@ class DDMPlot(HasTraits):
                                          a=self.parameters.a,
                                          z=self.parameters.z,
                                          v0=self.parameters.v,
-                                         v1=self.parameters.sz,
+                                         v1=self.parameters.sa,
                                          t=self.parameters.ter,
                                          V=self.parameters.sv, logp=False)
 
