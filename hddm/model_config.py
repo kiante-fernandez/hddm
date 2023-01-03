@@ -26,16 +26,16 @@ model_config = {
     },
     "full_ddm_vanilla": {
         "doc": "Model used internally for simulation purposes. Do NOT use with the LAN extension.",
-        "params": ["v", "a", "z", "t", "sz", "sv", "st"],
+        "params": ["v", "a", "z", "t", "sa", "sv", "st"],
         "params_trans": [0, 0, 1, 0, 0, 0, 0],
-        "params_std_upper": [1.5, 1.0, None, 1.0, 0.1, 0.5, 0.1],
+        "params_std_upper": [1.5, 1.0, None, 1.0, 0.5, 0.5, 0.1],
         "param_bounds": [
             [-5.0, 0.1, 0.3, 0.25, 0, 0, 0],
-            [5.0, 5.0, 0.7, 2.25, 0.25, 4.0, 0.25],
+            [5.0, 5.0, 0.7, 2.25, 4.0, 4.0, 0.25],
         ],
         "boundary": bf.constant,
         "params_default": [0.0, 1.0, 0.5, 0.25, 0, 0, 0],
-        "hddm_include": ["z", "st", "sv", "sz"],
+        "hddm_include": ["z", "st", "sv", "sa"],
         "choices": [0, 1],
         "slice_widths": {
             "v": 1.5,
@@ -46,7 +46,7 @@ model_config = {
             "z_trans": 0.2,
             "t": 0.01,
             "t_std": 0.15,
-            "sz": 1.1,  # AF-TODO: Might be worth downregulating and adding _std widths
+            "sa": 0.5,  # AF-TODO: Might be worth downregulating and adding _std widths
             "st": 0.1,
             "sv": 0.5,
         },
@@ -157,16 +157,16 @@ model_config = {
     "full_ddm": {
         "doc": "Currently unavailable, for LANs after switch to pytorch. \n"
         + "Coming soon... Please use standard HDDM if you want to fit this model to your data.",
-        "params": ["v", "a", "z", "t", "sz", "sv", "st"],
+        "params": ["v", "a", "z", "t", "sa", "sv", "st"],
         "params_trans": [0, 0, 1, 0, 0, 0, 0],
-        "params_std_upper": [1.5, 1.0, None, 1.0, 0.1, 0.5, 0.1],
+        "params_std_upper": [1.5, 1.0, None, 1.0, 0.5, 0.5, 0.1],
         "param_bounds": [
             [-3.0, 0.3, 0.3, 0.25, 1e-3, 1e-3, 1e-3],
-            [3.0, 2.5, 0.7, 2.25, 0.2, 2.0, 0.25],
+            [3.0, 2.5, 0.7, 2.25, 2.0, 2.0, 0.25],
         ],
         "boundary": bf.constant,
         "params_default": [0.0, 1.0, 0.5, 0.25, 1e-3, 1e-3, 1e-3],
-        "hddm_include": ["z", "st", "sv", "sz"],
+        "hddm_include": ["z", "st", "sv", "sa"],
         "choices": [-1, 1],
         "slice_widths": {
             "v": 1.5,
@@ -177,7 +177,7 @@ model_config = {
             "z_trans": 0.2,
             "t": 0.01,
             "t_std": 0.15,
-            "sz": 1.1,  # AF-TODO: Might be worth downregulating and adding _std widths
+            "sa": 1,  # AF-TODO: Might be worth downregulating and adding _std widths
             "st": 0.1,
             "sv": 0.5,
         },
