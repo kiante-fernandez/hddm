@@ -60,7 +60,7 @@ WienerContaminant = stochastic_from_dist(
 )
 
 
-def general_WienerCont(err=1e-4, n_st=2, n_sa=2, use_adaptive=1, simps_err=1e-3):
+def general_WienerCont(err=1e-4, n_st=2, n_sa=2, use_adaptive=0, simps_err=1e-3):
     _like = lambda value, cont_x, v, sv, a, sa, z, t, st, t_min, t_max, err=err, n_st=n_st, n_sa=n_sa, use_adaptive=use_adaptive, simps_err=simps_err: wiener_like_contaminant(
         value,
         cont_x,
@@ -113,7 +113,7 @@ def generate_wfpt_stochastic_class(
             "n_st": 2,
             #"n_sz": 2,
             "n_sa": 2,
-            "use_adaptive": 1,
+            "use_adaptive": 0,
             "simps_err": 1e-3,
             "w_outlier": 0.1,
         }

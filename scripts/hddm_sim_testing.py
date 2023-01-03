@@ -3,12 +3,66 @@ import hddm
 import pandas as pd
 import numpy as np
 
-params = {'a': 2, 'v': 1.5, 't': 0.45, 'sa': .2}
 
+include = ["sa", "st", "sv"]
+params = hddm.generate.gen_rand_params(include=include) #sometime this generates values that throw an error (particularly when include has sv)
 sim,sim_params = hddm.generate.gen_rand_data(params)
 
-hddm.wfpt()
+hddm.generate.gen_rts(method="cdf", **params).rt.values
+
+rts = np.asarray(sim["rt"])
+
+rt = 1.5
+v = params['v']
+a = params['a']
+t = params['t']
+sa = params['sa']
+z = 0.5
+err = 10 ** (round(np.random.rand() * -10))
+st = params['st']
+sv = params['sv']
+
+python_wfpt = hddm.wfpt.full_pdf(-rt, v, sv, a, z, sa, t, st, err, n_sa=5)
+
+p = hddm.wfpt.pdf_array(
+            rts,
+            params["v"],
+            params["sv"],
+            params["a"],
+            params["z"],
+            params["sa"],
+            params["t"],
+            params["st"],
+            1e-4,
+            logp=True,
+        )
+
+summed_logp = np.sum(p)
+
+summed_logp_like = hddm.wfpt.wiener_like(
+            rts,
+            params["v"],
+            params["sv"],
+            params["a"],
+            params["z"],
+            params["sa"],
+            params["t"],
+            params["st"],
+            1e-4,
+        )
+
+my_res = hddm.wfpt.full_pdf(
+        rt, v=v, sv=sv, a=a, z=z, sa=sa, t=t, st=st, err=err, n_st=5, n_sa=5, use_adaptive=0,)
+            
+            
 model_0 = hddm.HDDM(sim, include = ("sa"))
+# find a good starting point which helps with the convergence.
+model_0.find_starting_values()
+# start drawing 2000 samples and discarding 20 as burn-in (usually you want to have a longer burn-in period)
+model_0.sample(2000, burn=20)
+
+stats = model_0.gen_stats()
+
 #notes. could not get to work. Think about simpler example  (rather than calling HDDM) so maybe something in likelihoods.py
 #or something
 
