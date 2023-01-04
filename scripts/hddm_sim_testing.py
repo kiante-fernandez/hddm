@@ -7,26 +7,50 @@ import seaborn as sns
 
 include = ["sa", "st", "sv"]
 params = hddm.generate.gen_rand_params(include=include) #sometime this generates values that throw an error (particularly when include has sv)
-params1 = {'sv': 0, 'sa': 0, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 1.5}
-params2 = {'sv': 0, 'sa': 0.001, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 1.5}
-params3 = {'sv': 0, 'sa': 0.01, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 1.5}
-params4 = {'sv': 0, 'sa': 0.1, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 1.5}
-params5 = {'sv': 0, 'sa': 1, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 1.5}
 
-sim1,sim_params1 = hddm.generate.gen_rand_data(params1, size = 1000)
-sim2,sim_params2 = hddm.generate.gen_rand_data(params2, size = 1000)
-sim3,sim_params3 = hddm.generate.gen_rand_data(params3, size = 1000)
-sim4,sim_params4 = hddm.generate.gen_rand_data(params4, size = 1000)
-sim5,sim_params5 = hddm.generate.gen_rand_data(params5, size = 1000)
 
-sim1['sa'] = 0
-sim2['sa'] = 0.001
-sim3['sa'] = 0.01
-sim4['sa'] = 0.1
-sim5['sa'] = 1
+def simulate_saDDM(params):
+    #simulate five data sets with varying sa
+    params1 = {'sv': params['sv'], 'sa': 0, 'st': params['st'], 'z': 0.5, 'v': params['v'], 't': params['t'], 'a': params['a']}
+    params2 = {'sv': params['sv'], 'sa': 0.001, 'st': params['st'], 'z': 0.5, 'v': params['v'], 't': params['t'], 'a': params['a']}
+    params3 = {'sv': params['sv'], 'sa': 0.01, 'st': params['st'], 'z': 0.5, 'v': params['v'], 't': params['t'], 'a': params['a']}
+    params4 = {'sv': params['sv'], 'sa': 0.1, 'st': params['st'], 'z': 0.5, 'v': params['v'], 't': params['t'], 'a': params['a']}
+    params5 = {'sv': params['sv'], 'sa': 1, 'st': params['st'], 'z': 0.5, 'v': params['v'], 't': params['t'], 'a': params['a']}
 
-sims = pd.concat((sim1,sim2,sim3,sim4,sim5))
-sims.to_csv("sa_simulations_test.csv")
+    sim1,sim_params1 = hddm.generate.gen_rand_data(params1, size = 1000)
+    sim2,sim_params2 = hddm.generate.gen_rand_data(params2, size = 1000)
+    sim3,sim_params3 = hddm.generate.gen_rand_data(params3, size = 1000)
+    sim4,sim_params4 = hddm.generate.gen_rand_data(params4, size = 1000)
+    sim5,sim_params5 = hddm.generate.gen_rand_data(params5, size = 1000)
+
+    sim1['sa'] = 0
+    sim2['sa'] = 0.001
+    sim3['sa'] = 0.01
+    sim4['sa'] = 0.1
+    sim5['sa'] = 1
+
+    sims = pd.concat((sim1,sim2,sim3,sim4,sim5))
+    
+    return sims
+
+
+#Increase a by 50%
+params_ah = {'sv': 0, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 2.25}
+sims1 = simulate_saDDM(params_ah)
+sims1.to_csv("sa_simulations_high_a.csv")
+#Decrease a by 50%
+params_al = {'sv': 0, 'st': 0, 'z': 0.5, 'v': 0.65, 't': 0.23, 'a': 0.75}
+sims2 = simulate_saDDM(params_al)
+sims2.to_csv("sa_simulations_low_a.csv")
+#Increase v by 50%
+params_vh = {'sv': 0, 'st': 0, 'z': 0.5, 'v': 0.975, 't': 0.23, 'a': 1.5}
+sims3 = simulate_saDDM(params_vh)
+sims3.to_csv("sa_simulations_high_v.csv")
+#Decrease v by 50%
+params_vl = {'sv': 0, 'st': 0, 'z': 0.5, 'v': 0.325, 't': 0.23, 'a': 1.5}
+sims4 = simulate_saDDM(params_vl)
+sims4.to_csv("sa_simulations_low_v.csv")
+
 
 sim_list = [sim1, sim2, sim3, sim4, sim5]
 fig = plt.figure()
@@ -38,13 +62,7 @@ for i in range(5):
     # sns.kdeplot(np.array(data.rt), bw=0.5)
     sns.distplot(data.rt)
 
-
 plt.show()
-
-sns.kdeplot(np.array(data.rt))
-sns.distplot(data.rt)
-
-    
 
 hddm.model_config.model_config["full_ddm"]
 
@@ -62,8 +80,6 @@ model_0.plot_posteriors(['a','v','sv','sa'])
 plt.show()
 
 hddm.plotting.plot_posterior_pair(model_0, save = False, figsize = (10, 10))
-
-
 
 
 # hddm.generate.gen_rts(method="cdf", **params).rt.values
