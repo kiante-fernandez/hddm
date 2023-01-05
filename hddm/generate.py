@@ -135,12 +135,12 @@ def gen_rand_params(include=(), cond_dict=None, seed=None):
 
 def gen_rts(
     size=1000,
-    range_=(-6, 6),
-    dt=1e-3,
+    range_=(-6, 6), #here we were hitting ceiling for certain parameter combinations
+    dt=1e-4, #changed for the drift method use
     intra_sv=1.0,
     structured=True,
     subj_idx=None,
-    method="cdf",
+    method="drift", #we change this from cdf to cdf_py
     **params
 ):
     """
@@ -197,7 +197,8 @@ def gen_rts(
             size = size[0]
 
     if method == "cdf_py":
-        rts = _gen_rts_from_cdf(params, size, range_, dt)
+#        rts = _gen_rts_from_cdf(params, size, range_, dt)
+        rts = _gen_rts_from_cdf(params, size)
     elif method == "drift":
         rts = _gen_rts_from_simulated_drift(params, size, dt, intra_sv)[0]
     elif method == "cdf":
@@ -252,7 +253,8 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
         samples = 1
     nn = 1000
     v = params["v"]
-
+    a = params["a"] 
+    
     if "v_switch" in params:
         switch = True
         t_switch = params["t_switch"] / dt
@@ -277,7 +279,7 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
             - params["sa"] / 2.0
         )
     else:
-        a = params["a"]
+        a = np.array([params["a"]] * samples)
 
     # create starting_points
     starting_points = np.ones(samples) * params["z"] * a
@@ -314,7 +316,7 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
             position[0] += y_0
             position = np.cumsum(position)
             # Find boundary crossings
-            cross_idx = np.where((position < 0) | (position > a))[0]
+            cross_idx = np.where((position < 0) | (position > a[i_sample]))[0]
             drift = np.concatenate((drift, position))
             if cross_idx.shape[0] > 0:
                 crossed = True
@@ -335,7 +337,7 @@ def _gen_rts_from_simulated_drift(params, samples=1000, dt=1e-4, intra_sv=1.0):
         if y2 < 0:
             rt = (0 - b) / m
         else:
-            rt = (a - b) / m
+            rt = (a[i_sample] - b) / m
         rts[i_sample] = (rt + start_delay[i_sample]) * np.sign(y2)
 
         delay = start_delay[i_sample] / dt
@@ -405,7 +407,7 @@ def _gen_rts_from_cdf(params, samples=1000):
     t = params["t"]
     T = params["st"]
     a = params["a"]
-    A = params["A"]
+    A = params["sa"]
     return hddm.likelihoods.wfpt.ppf(
         np.random.rand(samples), args=(v, V, a, A, z, t, T) #Z, t, T)
     )
@@ -468,7 +470,7 @@ def gen_rand_data(params=None, n_fast_outliers=0, n_slow_outliers=0, **kwargs):
     }
 
     if "share_noise" not in kwargs:
-        kwargs["share_noise"] = set(["a", "v", "t", "st", "sz", "sv", "z"]) #"sz", "sv", "z"])
+        kwargs["share_noise"] = set(["a", "v", "t", "st", "sa", "sv", "z"]) #"sz", "sv", "z"])
 
     # Create RT data
     data, subj_params = kabuki.generate.gen_rand_data(
