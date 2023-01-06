@@ -140,7 +140,7 @@ def gen_rts(
     intra_sv=1.0,
     structured=True,
     subj_idx=None,
-    method="drift", #we change this from cdf to cdf_py
+    method="cdf", #we change this from cdf to cdf_py
     **params
 ):
     """
@@ -380,7 +380,7 @@ def pdf_with_params(rt, params):
         n_st=2,
         #n_sz=2,
         n_sa=2,
-        use_adaptive=0,
+        use_adaptive=1,
         simps_err=1e-3,
     )
 

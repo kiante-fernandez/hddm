@@ -103,7 +103,7 @@ cdef double pdf_sv(double x, double v, double sv, double a, double z, double err
 
 cpdef double full_pdf(double x, double v, double sv, double a, double
                       z, double sa, double t, double st, double err, int
-                      n_st=2, int n_sa=2, bint use_adaptive=0, double
+                      n_st=2, int n_sa=2, bint use_adaptive=1, double
                       simps_err=1e-3) nogil:
     """full pdf"""
 
@@ -134,7 +134,7 @@ cpdef double full_pdf(double x, double v, double sv, double a, double
                 return simpson_1D(x, v, sv, a, z, t, err, a, a, 0, t-st/2., t+st/2., n_st)
 
     else: #sa=$
-        if (st==0): #sv=0,sz=$,st=0
+        if (st==0): #sv=0,sa=$,st=0
             if use_adaptive:
                 return adaptiveSimpsons_1D(x, v, sv, a, z, t, err, a-sa/2., a+sa/2., t, t, simps_err, n_sa)
             else:

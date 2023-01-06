@@ -11,7 +11,7 @@
 # reference version.
 #
 # Copyleft Thomas Wiecki (thomas_wiecki[at]brown.edu) & Imri Sofer, 2011
-# updated for sa Blair S  & Kiante F, 2022
+# Changing `wiener_like` to reflect sa Blair Shevlin & Kiante Fernandez, 2022
 
 # GPLv3
 
@@ -32,7 +32,7 @@ from cython.parallel import *
 include 'integrate.pxi'
 
 def pdf_array(np.ndarray[double, ndim=1] x, double v, double sv, double a, double z, double sa,
-              double t, double st, double err=1e-4, bint logp=0, int n_st=2, int n_sa=2, bint use_adaptive=0,
+              double t, double st, double err=1e-4, bint logp=0, int n_st=2, int n_sa=2, bint use_adaptive=1,
               double simps_err=1e-3, double p_outlier=0, double w_outlier=0):
 
     cdef Py_ssize_t size = x.shape[0]
@@ -54,7 +54,7 @@ cdef inline bint p_outlier_in_range(double p_outlier):
 
 
 def wiener_like(np.ndarray[double, ndim=1] x, double v, double sv, double a, double z, double sa, double t,
-                double st, double err, int n_st=10, int n_sa=10, bint use_adaptive=0, double simps_err=1e-8,
+                double st, double err, int n_st=10, int n_sa=10, bint use_adaptive=1, double simps_err=1e-8,
                 double p_outlier=0, double w_outlier=0.1):
     cdef Py_ssize_t size = x.shape[0]
     cdef Py_ssize_t i
@@ -552,7 +552,7 @@ def gen_rts_from_cdf(double v, double sv, double a, double z, double sa, double 
 
 def wiener_like_contaminant(np.ndarray[double, ndim=1] x, np.ndarray[int, ndim=1] cont_x, double v,
                             double sv, double a, double z, double sa, double t, double st, double t_min,
-                            double t_max, double err, int n_st=10, int n_sa=10, bint use_adaptive=0,
+                            double t_max, double err, int n_st=10, int n_sa=10, bint use_adaptive=1,
                             double simps_err=1e-8):
     """Wiener likelihood function where RTs could come from a
     separate, uniform contaminant distribution.
@@ -582,13 +582,13 @@ def wiener_like_contaminant(np.ndarray[double, ndim=1] x, np.ndarray[int, ndim=1
     return sum_logp
 
 def gen_cdf_using_pdf(double v, double sv, double a, double z, double sa, double t, double st, double err,
-                      int N=500, double time=5., int n_st=2, int n_sa=2, bint use_adaptive=0, double simps_err=1e-3,
+                      int N=500, double time=5., int n_st=2, int n_sa=2, bint use_adaptive=1, double simps_err=1e-3,
                       double p_outlier=0, double w_outlier=0):
     """
     generate cdf vector using the pdf
     """
     if (sv < 0) or (a <= 0 ) or (z < 0) or (z > 1) or (sa < 0) or \
-            (a - sa < 0) or (t - st / 2. < 0) or (t < 0) or (st < 0) or not p_outlier_in_range(p_outlier):
+            (a - sa / 2. < 0) or (t - st / 2. < 0) or (t < 0) or (st < 0) or not p_outlier_in_range(p_outlier):
         raise ValueError(
             "at least one of the parameters is out of the support")
 

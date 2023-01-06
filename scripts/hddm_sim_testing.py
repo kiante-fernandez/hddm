@@ -59,11 +59,18 @@ plt.show()
 
 hddm.model_config.model_config["full_ddm"]
 
+include = ["sa", "st", "sv"]
+params = hddm.generate.gen_rand_params(include=include) 
+#test some values
+params = {'sv': 0.09,'sa':.65, 'st': 0.3, 'z': 0.5, 'v': 0.425, 't': 0.23, 'a': 1.5}
+
+sim,sim_params = hddm.generate.gen_rand_data(params, size = 1000) #note adding subjects makes the model really mad! 
 model_0 = hddm.HDDM(sim, include = ("sa","sv", "st"))
 # find a good starting point which helps with the convergence.
 model_0.find_starting_values()
 # start drawing 2000 samples and discarding 20 as burn-in (usually you want to have a longer burn-in period)
 model_0.sample(10000, burn=5000)
+
 
 stats = model_0.gen_stats()
 stats
@@ -72,8 +79,14 @@ sim_params
 model_0.plot_posteriors(['a','v','sv','sa'])
 plt.show()
 
-hddm.plotting.plot_posterior_pair(model_0, save = False, figsize = (10, 10))
-
+hddm.plotting.plot_posterior_pair(model_0, save = False, figsize = (5, 5))
+#seems like the recovery for sa is hard because of it's relation with sv
+mle_est = model_0.optimize(method = "ML")
+mle_est
+sim_params
+#notes 
+# so generate data with 
+sim,sim_params = hddm.generate.gen_rand_data(params, size = 1000) #note adding subjects makes the model really mad! 
 
 
 def simulate_saDDM(params):

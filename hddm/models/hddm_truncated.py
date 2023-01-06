@@ -29,9 +29,9 @@ class HDDMTruncated(HDDMBase):
                 self._create_family_trunc_normal("sv", lower=0, upper=1e3, value=1)
             )
             # knodes.update(self._create_family_exp('sv', value=1))
-        if "sz" in include:
+        if "sa" in include:
             knodes.update(
-                self._create_family_trunc_normal("sz", lower=0, upper=1, value=0.1)
+                self._create_family_trunc_normal("sa", lower=0, upper=1e3, value=1)
             )
         if "st" in include:
             knodes.update(

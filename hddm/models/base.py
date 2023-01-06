@@ -1364,7 +1364,7 @@ class HDDMBase(AccumulatorModel):
                 "err": 1e-4,
                 "n_st": 2,
                 "n_sa": 2,
-                "use_adaptive": 0,
+                "use_adaptive": 1,
                 "simps_err": 1e-3,
                 "w_outlier": 0.1,
             }
