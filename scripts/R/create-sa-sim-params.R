@@ -1,7 +1,7 @@
 # create-sa-sim-params.R - generates parameter combinations with variation in
 # Ratcliff diffusion model
 #
-# Copyright (C) 2022 Kianté Fernandez, <kiantefernan@gmail.com>
+# Copyright (C) 2023 Blair Shevlin & Kianté Fernandez, <kiantefernan@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,14 +28,21 @@ library(purrr) # Functional Programming Tools
 library(here)
 library(rtdists)
 
-
-# Mean parameters taken from Young adults from Experiment 2 in:
-# Ratcliff, R., Thapar, A., & McKoon, G. (2001).
-# The effects of aging on reaction time in a signal detection task.
-# Psychology and Aging, 16(2), 323–341. https://doi.org/10.1037/0882-7974.16.2.323
-
 # create function to generate subject samples
 generate_subject_parameters <- function(genparam, ns) {
+  # generate_subject_parameters:  Generates parameter combinations
+  #
+  # Arguments
+  # ----------
+  # genparam: a list contains all of the group level parameters
+  # 
+  # 
+  # ns: the number of subjects to simulate
+  # 
+  # Returns
+  # -------
+  # A dataframe of the set of parameters for each subjects
+  
   if (sign(genparam$t_mu - genparam$t_sd) == -1) stop("ter is less than one. select new t_sd  non-negative to avoid")
 
   params_temp <- data.frame(subj_idx = 1:ns)
@@ -53,6 +60,24 @@ generate_subject_parameters <- function(genparam, ns) {
 }
 
 generate_sa_simulations <- function(genparam,sa,nt,ns){
+  # generate_sa_simulations:  Generates data according to provided group level parameters and different sa value
+  #
+  # Arguments
+  # ----------
+  # genparam: a list contains all of the group level parameters
+  # 
+  # sa: vector of each of the candidate sa values 
+  # 
+  # nt: the number of trials per condition
+  # 
+  # ns: the number of subjects to simulate
+  # 
+  # Returns
+  # -------
+  # List with contains each of the simulations results for each level of sa.
+  # Each list contains two dataframes: data set and parameters.
+  # dataset is the organized data set for all the conditions
+  # parameters is the corresponding set of parameters used to generate subject data
   
   sim_res <- vector(mode = "list", length = length(sa))
   
