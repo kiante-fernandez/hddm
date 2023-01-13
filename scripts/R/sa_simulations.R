@@ -51,9 +51,21 @@ genparam$v_sd <- 0.25 # this is our `eta` for our purposes
 
 # select a range of sa values
 sa <- c(0, .01, .1, .5, .75)
-nt <- 1000 # number of trials
-ns <- 100 # number of subjects
+nt <- 1200 # number of trials
+ns <- 10 # number of subjects
 
 res <- generate_sa_simulations(genparam, sa, nt, ns)
 
-# pretty simple to now use a different number of trials where we scale back the number of samples
+##Prepare data for fortran fitting
+
+condition <- "ACCURACY"
+sa_condition <- 1
+
+prepare_fortran(res, condition, sa_condition)
+
+
+#TODO can you pull in the results from the FORTRAN code ? Yes. see the fort. file for those you can make a table of them
+
+
+#0.116   0.414   0.048   0.027   0.607   0.100   0.288   0.413   0.163   0.103  -0.271     -436.63208
+
