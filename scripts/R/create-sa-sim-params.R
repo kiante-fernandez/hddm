@@ -22,6 +22,7 @@
 # ====         ================                       ======================
 # 2023/01/05    Blair Shevlin                         wrote original code
 # 2023/01/07    Kianté Fernandez                      refactored for function output
+# 2023/02/12    Kianté Fernandez                      updated to capture trial variation per subject
 
 # Libraries
 library(purrr) # Functional Programming Tools
@@ -48,8 +49,9 @@ generate_subject_parameters <- function(genparam, ns) {
   params_temp <- data.frame(subj_idx = 1:ns)
 
   # Subj-level parameters
-  params_temp$a_speed <- runif(ns, min = genparam$a_speed_mu - genparam$sa, max = genparam$a_speed_mu + genparam$sa)
-  params_temp$a_accuracy <- runif(ns, min = genparam$a_accuracy_mu - genparam$sa, max = genparam$a_accuracy_mu + genparam$sa)
+  params_temp$a_speed <- runif(ns, min = genparam$a_speed_mu - genparam$a_sd, max = genparam$a_speed_mu + genparam$a_sd)
+  params_temp$a_accuracy <- runif(ns, min = genparam$a_accuracy_mu - genparam$a_sd, max = genparam$a_accuracy_mu + genparam$a_sd)
+  
   params_temp$v_1 <- rnorm(ns, genparam$v_1_mu, genparam$v_sd)
   params_temp$v_2 <- rnorm(ns, genparam$v_2_mu, genparam$v_sd)
   params_temp$v_3 <- rnorm(ns, genparam$v_3_mu, genparam$v_sd)
@@ -80,14 +82,14 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
   # parameters is the corresponding set of parameters used to generate subject data
 
   sim_res <- vector(mode = "list", length = length(sa))
-
+  # sa_idx = 5
   for (sa_idx in seq_along(sa)) {
     # change sa parameter value
     genparam$sa <- sa[[sa_idx]]
     # generate params
-    parameters <- generate_subject_parameters(genparam, ns) # function works
+    parameters <- generate_subject_parameters(genparam, ns)
 
-    # subj_idx <- 1
+    # subj_idx <- 4
     # create list for each of the conditions (instructions and diff)
     temp_ds1 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
     temp_ds2 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
@@ -99,18 +101,22 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
     temp_ds8 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
 
     for (subj_idx in seq_along(parameters$subj_idx)) {
-      #TODO should we change s (diffusion constant) ratcliff to 0.01?
-      # apply parameters to each condition
+      
+      a_speed_temp <- runif(nt, min = parameters$a_speed[[subj_idx]] - genparam$sa, max = parameters$a_speed[[subj_idx]] + genparam$sa)
+      
+      a_accuracy_temp <- runif(nt, min = parameters$a_accuracy[[subj_idx]] - genparam$sa, max = parameters$a_accuracy[[subj_idx]] + genparam$sa)
+      
       # speed
-      temp_ds1[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_speed[[subj_idx]], v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds2[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_speed[[subj_idx]], v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds3[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_speed[[subj_idx]], v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds4[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_speed[[subj_idx]], v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      # acc
-      temp_ds5[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_accuracy[[subj_idx]], v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds6[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_accuracy[[subj_idx]], v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds7[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_accuracy[[subj_idx]], v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
-      temp_ds8[subj_idx] <- list(rtdists::rdiffusion(n = nt, a = parameters$a_accuracy[[subj_idx]], v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * parameters$a_speed[[subj_idx]]))
+      temp_ds1[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds2[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds3[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds4[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      # accuracy
+      temp_ds5[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds6[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds7[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds8[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      
     }
     ds <- list(temp_ds1, temp_ds2, temp_ds3, temp_ds4, temp_ds5, temp_ds6, temp_ds7, temp_ds8)
     # clean up the datasets
@@ -143,6 +149,9 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 }
 
 prepare_fortran <- function(res, condition, sa_condition) {
+  # TODO for the double fitting (both speed and accuracy) this file needs to change 
+  # it needs to look like 0 2.810 nonword accuracy
+  
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
@@ -178,7 +187,7 @@ prepare_fortran <- function(res, condition, sa_condition) {
     if (subject_idx < 10) {
       temp_file_name <- paste0("subj00", subject_idx, ".", condition, ".SA", sa_condition, ".fast-dm.csv")
     } else {
-      temp_file_name <- paste0("subj00", subject_idx, ".", condition, ".SA", sa_condition, ".fast-dm.csv")
+      temp_file_name <- paste0("subj0", subject_idx, ".", condition, ".SA", sa_condition, ".fast-dm.csv")
     }
     # stringr::str_detect(temp_df_subject,"\")
     # print(temp_file_name)
@@ -187,4 +196,9 @@ prepare_fortran <- function(res, condition, sa_condition) {
 }
 
 #TODO create function to bootstrap the datasets for fitting
+
+
+
+
+
 
