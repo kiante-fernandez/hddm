@@ -78,14 +78,24 @@ res_1 <- read.table("~/Documents/hddm/scripts/fortran/fort.101",col.names = labe
 res_2 <- read.table("~/Documents/hddm/scripts/fortran/fort.102",col.names = labels)
 res_3 <- read.table("~/Documents/hddm/scripts/fortran/fort.103",col.names = labels)
 res_4 <- read.table("~/Documents/hddm/scripts/fortran/fort.104",col.names = labels)
-#acc
 res_5 <- read.table("~/Documents/hddm/scripts/fortran/fort.105",col.names = labels)
+#acc
 res_6 <- read.table("~/Documents/hddm/scripts/fortran/fort.106",col.names = labels)
 res_7 <- read.table("~/Documents/hddm/scripts/fortran/fort.107",col.names = labels)
 res_8 <- read.table("~/Documents/hddm/scripts/fortran/fort.108",col.names = labels)
+res_9 <- read.table("~/Documents/hddm/scripts/fortran/fort.109",col.names = labels)
+res_10 <- read.table("~/Documents/hddm/scripts/fortran/fort.110",col.names = labels)
 
-
-
+res[[1]][["parameters"]]
+res_1$sa
+res_2$sa
+res_3$sa
+res_4$sa
+res_5$sa
+res_6$sa
+res_7$sa
+res_8$sa
+res_9$sa
 #0.116   0.414   0.048   0.027   0.607   0.100   0.288   0.413   0.163   0.103  -0.271     -436.63208
 
 
