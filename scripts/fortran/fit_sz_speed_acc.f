@@ -1,44 +1,37 @@
 C data file. onset early, y early, onset late, y late, coherence, stim
 C type (face/car), RT, correct vs error.
-C     include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
+C      include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       implicit double precision (a-h,o-z)
       include '/opt/intel/oneapi/mkl/2023.0.0/include/mkl.fi'
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
       double precision rt(2000),yi(2000),cond(2000),gu(20000),y(39)
-c mcond refers to difficulty condition
-c minstr refers to speed/acc condition
       integer mch(2000),mcond(2000),minstr(2000),con(2000)
       character(95) d1,d2,ff,d3,d4
       character(8) aa
       character(9) cc
-c     d1="/u/russ/diff4/pb1-fast-dm/subj00"
-c     d4="/u/russ/diff4/pb1-fast-dm/subj0"
       d1="subj00"
       d4="subj0"
+C     d2=".pb1.p0_N0200M0600.fast-dm.csv"
 C      d2=".speed.acc.test.csv"
       d2=".SA1.fast-dm.csv"
-C      d2=".SA2.fast-dm.csv"
-C      d2=".SA3.fast-dm.csv"
-C      d2=".SA4.fast-dm.csv"
-C      d2=".SA5.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
       d2=adjustl(d2)
       d1=trim(d1)
       d4=trim(d4)
       d2=trim(d2)
-c n is the number of trials
       n=1200
       nn=2000
       mrun=9000
-      nfile=101
+      nfile=201
       iseed=12333
       call ranunif(gu,mrun,iseed)
-      mmc=128
-      call OMP_SET_NUM_THREADS(mmc)
+C NOTE THAT THIS VALUE IS 128 IN ROGER"S SA CODE
+      mmc=64
+      CALL OMP_SET_NUM_THREADS(mmc)
       ict=1
-c k is subj #
-      do 7 k=1,50
+C change number after comma to number of subjects
+      do 7 k=1,1
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)
@@ -47,8 +40,8 @@ C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       print*,trim(ff)
       open(1,file=trim(ff))
       do 1 i=1,n
-      read(1,*)ich,rr,aa,cc
-c      print*,ich,rr,aa,cc
+      read(1,*)ich,rr,aa
+C     print*,ich,rr,aa
       rt(i)=1000.*rr
       mch(i)=ich
 C change this to specific condition names
@@ -59,7 +52,7 @@ C change this to specific condition names
 C these are speed/accuracy conds
       if(cc.eq."accuracy")minstr(i)=1
       if(cc.eq."speed")minstr(i)=2
-C     write(*,"(f8.3,2i5,f8.3,i5)")yi(i),mcond(i),con(i),rt(i),mch(i),minstr(i)
+C     write(*,"(f8.3,2i5,f8.3,i5)")yi(i),mcond(i),con(i),rt(i),mch(i)
     1 continue
       OPEN(14,STATUS='SCRATCH')
       OPEN(15,STATUS='SCRATCH')
@@ -88,7 +81,7 @@ C ter
       x(3)=.24
 c eta
       x(4)=.13
-c sa (was sz)
+c sz
       x(5)=.03
 C modify z to be a proportion of a
       x(6)=0.5
@@ -104,20 +97,20 @@ C set of drift rates
       NV=12
       el1=990000.
       el2=0.
-      ict=1
-      xinc=.04
+       ict=1
+       xinc=.04
       do 27 ij=1,3000
       if(ij.gt.1500)xinc=.01
-      if(ict.gt.8500)then
-      iseed=iseed+1
-      call ranunif(gu,mrun,iseed)
-      ict=1
-      endif
+       if(ict.gt.8500)then
+       iseed=iseed+1
+       call ranunif(gu,mrun,iseed)
+       ict=1
+       endif
       do 2 i=1,nv
       y(i)=x(i)+(.5-gu(ict))*x(i)*xinc
       ict=ict+1
     2 continue
-      y(8)=x(8)+(.5-gu(ict))*xinc
+      y(7)=x(7)+(.5-gu(ict))*xinc
       ict=ict+1
       el2=fofs(nv,y)
       ra=exp(-el2+el1)
@@ -295,20 +288,18 @@ C     COMMON PI,U,S,A,Z,XB,SC,TI,NN,KK
       gw=1./(1.0*nsz)
       gww=gw*gw
       pzz=pz/(pxa)
-C     A=aaa
+      A=aaa
       XB=xxb
       chi=0.0
       ss=0.
       ts=r-TER
+      Z=zz-nnsz*sg*gw
       kkk=0
       t3=2.
       accc=0.0D0
-C     Z=zz-nnsz*sg*gw
-      a=aaa-nnsz*sg*gw
+      Z=zz-nnsz*sg*gw
       do 5 i6=1,nsz
-C     z=z+sg*gw
-      a=a+sg*gw
-      z=a*zz
+      z=z+sg*gw
       accc=accc+gw*ffc(t3,PI,xb,S,A,z,XB,SC,TI,NN,KKk)
     5 continue
 C     t1=.2
@@ -316,11 +307,9 @@ C     t2=.5
 C     write(*,"('ffc',10f9.3)")ffc(t1,PI,xb,S,A,a/2.D0,XB,SC,TI,NN,KK),
 C    *t1,ffc(t3,PI,xb,S,A,a/2.D0,XB,SC,TI,NN,KK),
 C    *t2,ffc(t3,PI,xb,S,A,a/2.D0,XB,SC,TI,NN,KK),t3
-C     Z=zz-nnsz*sg*gw
-      a=aaa-nnsz*sg*gw
+      Z=zz-nnsz*sg*gw
       do 1 i6=1,nsz
-C     z=z+sg*gw
-      a=a+sg*gw
+      z=z+sg*gw
       t=ts-nnsz*st*gw
       do 3 it=1,nsz
       t=t+st*gw
@@ -329,8 +318,6 @@ C     write(*,'(2i6,9f8.3)')i6,it,t,ts,z,st,gw,r,ter
 C     if(t.lt.0.001)write(*,'(3i6,9f8.3)')i6,it,nss,t,ts,z,st,gw,r,ter
       if(t.lt.0.0001)xx=pzz*accc*gww
       if(t.lt.0.0001)go to 4
-C modify z to be a proportion of a
-      z=a*zz
       xx=(FFC(T+dt,PI,U,S,A,Z,XB,SC,TI,NN,KK)-
      *FFC(T,PI,U,S,A,Z,XB,SC,TI,NN,KK))/dt
 C     write(*,"(i4,8f9.5)")i6,xx,pz,pzz

@@ -56,6 +56,7 @@ generate_subject_parameters <- function(genparam, ns) {
   params_temp$v_2 <- rnorm(ns, genparam$v_2_mu, genparam$v_sd)
   params_temp$v_3 <- rnorm(ns, genparam$v_3_mu, genparam$v_sd)
   params_temp$v_4 <- rnorm(ns, genparam$v_4_mu, genparam$v_sd)
+  
   params_temp$t <- runif(ns, min = genparam$t_mu - genparam$t_sd, max = genparam$t_mu + genparam$t_sd)
 
   return(params_temp)
@@ -83,13 +84,13 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 
   sim_res <- vector(mode = "list", length = length(sa))
   # sa_idx = 5
+  parameters <- generate_subject_parameters(genparam, ns)
+  
   for (sa_idx in seq_along(sa)) {
     # change sa parameter value
     genparam$sa <- sa[[sa_idx]]
     # generate params
-    parameters <- generate_subject_parameters(genparam, ns)
 
-    # subj_idx <- 4
     # create list for each of the conditions (instructions and diff)
     temp_ds1 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
     temp_ds2 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
@@ -148,10 +149,8 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
   return(sim_res)
 }
 
-prepare_fortran <- function(res, condition, sa_condition) {
-  # TODO for the double fitting (both speed and accuracy) this file needs to change 
-  # it needs to look like 0 2.810 nonword accuracy
-  
+
+prepare_fortran <- function(res, sa_condition) {
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
@@ -169,25 +168,27 @@ prepare_fortran <- function(res, condition, sa_condition) {
   temp_df <- res[[sa_condition]][["dataset"]]
   # change response to zero/one
   temp_df$response <- as.integer(factor(temp_df$response)) - 1
+  
   # round off the RT (looks like that is what it is in the sheet too)
   temp_df$rt <- round(temp_df$rt, 4)
   #select a subset of the data from the condition of interest
-  if (condition == "SPEED") {
-    temp_df <- temp_df[temp_df$instructions == "speed", ]
-  } else if (condition == "ACCURACY") {
-    temp_df <- temp_df[temp_df$instructions == "accuracy", ]
-  }
+  temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1,2,3,4), labels = c("high","low", "vlow", "nonword"))
+  # if (condition == "SPEED") {
+  #   temp_df <- temp_df[temp_df$instructions == "speed", ]
+  # } else if (condition == "ACCURACY") {
+  #   temp_df <- temp_df[temp_df$instructions == "accuracy", ]
+  # }
   # create one string for the condition
-  temp_df <- tidyr::unite(temp_df, col = "condition", c("instructions", "difficulty"), sep = "")
+  temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty","instructions"), sep = " ")
   temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
 
   for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
     temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
 
     if (subject_idx < 10) {
-      temp_file_name <- paste0("subj00", subject_idx, ".", condition, ".SA", sa_condition, ".fast-dm.csv")
+      temp_file_name <- paste0("subj00", subject_idx, ".SA", sa_condition, ".fast-dm.csv")
     } else {
-      temp_file_name <- paste0("subj0", subject_idx, ".", condition, ".SA", sa_condition, ".fast-dm.csv")
+      temp_file_name <- paste0("subj0", subject_idx, ".SA", sa_condition, ".fast-dm.csv")
     }
     # stringr::str_detect(temp_df_subject,"\")
     # print(temp_file_name)
