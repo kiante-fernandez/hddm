@@ -49,7 +49,7 @@ genparam$t_mu <- 0.2846
 # Group-level variability
 genparam$t_sd <- 0.2
 genparam$v_sd <- 0.1040 # this is our `eta` for our purposes
-genparam$a_sd <- 0.02
+genparam$a_sd <- 0.02 # is this still desired
 
 # select a range of sa values
 sa <- c(0, .001, .01, .05, .07)
@@ -95,11 +95,12 @@ system2(command = "ifort", args = c("-O3", "test_speed_accuracy.f","-qopenmp","-
 
 labels <- c("a_acc","a_speed", "ter", "eta", "sa", "z/a","st","po", "v1", "v2","v3", "v4", "likelihood")
 
-res_1 <- read.table("~/Documents/OSU/hddm/scripts/fortran/fort.101",col.names = labels)
-res_2 <- read.table("~/Documents/OSU/hddm/scripts/fortran/fort.102",col.names = labels)
-res_3 <- read.table("~/Documents/OSU/hddm/scripts/fortran/fort.103",col.names = labels)
-res_4 <- read.table("~/Documents/OSU/hddm/scripts/fortran/fort.104",col.names = labels)
-res_5 <- read.table("~/Documents/OSU/hddm/scripts/fortran/fort.105",col.names = labels)
+res_1 <- read.table("~/Documents/hddm/scripts/fortran/fort.101", col.names = labels)
+res_2 <- read.table("~/Documents/hddm/scripts/fortran/fort.300",col.names = labels)
+
+res_3 <- read.table("~/Documents/hddm/scripts/fortran/fort.103",col.names = labels)
+res_4 <- read.table("~/Documents/hddm/scripts/fortran/fort.104",col.names = labels)
+res_5 <- read.table("~/Documents/hddm/scripts/fortran/fort.105",col.names = labels)
 
 # TODO fitting plot subject parameter gen_value est_value then do the diagonal 
 # combine the speed and acc within same plot so you can see if one condition over

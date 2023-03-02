@@ -131,6 +131,8 @@ qplot <- function(data) {
   
 }
 
+
+
 p1 <- qplot(res[[1]][[1]])
 p2 <- qplot(res[[2]][[1]])
 p3 <- qplot(res[[3]][[1]])
@@ -138,20 +140,37 @@ p4 <- qplot(res[[4]][[1]])
 p5 <- qplot(res[[5]][[1]])
 
 (p1 + p2 + p3) / (p4 + p5) +
-  plot_annotation("SA", tag_levels = "A")
+  plot_annotation("across trial variability in boundary separation", tag_levels = "A")
 
 p1 + p5
 
 # TODO fitting plot subject parameter gen_value est_value then do the diagonal
 # combine the speed and acc within same plot so you can see if one condition over
 # another if fitting well
+if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
+  res <- generate_sa_simulations(genparam, sa, nt, ns)
+  save(res, file = here::here("scripts", "R", "generated_sim_params.RData"))
+}else {
+  load(here::here("scripts", "R", "generated_sim_params.RData"))
+}
+
 #while the models are running I can just add  noise and make the plots
 gen_plotting_data <- res[[1]][[2]]
-est_plotting_data <- res[[1]][[2]]
+labels <- c("a_accuracy","a_speed", "t", "eta", "sa", "z/a","st","po", "v_1", "v_2","v_3", "v_4", "likelihood")
+est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.101", col.names = labels)
+# est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.300",col.names = labels)
 
-plot_dat <- data_frame(gen_a_speed = plotting_data$a_speed,
-           est_a_speed = (plotting_data$a_speed + rnorm(50, 0,.002))
-           )
+# plot_dat <- data_frame(gen_a_speed = plotting_data$a_speed,
+#            est_a_speed = (plotting_data$a_speed + rnorm(50, 0,.002))
+#            )
+
+sa_hist1 <- ggplot(est_plotting_data, aes(sa))+
+  geom_histogram(fill = "white", color = "black", bins = 35)+
+  scale_x_continuous(limits = c(0.000,0.15))+ them+ 
+  labs(title= "SA = 0")+
+  geom_vline(xintercept = 0.0, color = "red")
+
+psych::describe(est_plotting_data$sa)
 
 gen_plotting_data <- gen_plotting_data %>% 
   pivot_longer(-subj_idx, 
@@ -159,18 +178,109 @@ gen_plotting_data <- gen_plotting_data %>%
                values_to = "gen_estimates") 
 
 plot_dat <- est_plotting_data %>% 
+  select(a_accuracy,a_speed, t,v_1,v_2,v_3,v_4) %>% 
+  mutate(subj_idx = seq_len(nrow(est_plotting_data))) %>% 
   pivot_longer(-subj_idx, 
                names_to = "parameters",
                values_to = "est_estimates") %>% 
   left_join(gen_plotting_data)
 
-plot_dat$est_estimates <- plot_dat$est_estimates + rnorm(350, 0,.002)
+plot_dat %>% 
+  select(-subj_idx) %>% 
+  group_by(parameters) %>% 
+  correlation::correlation()
 
-ggplot()+
-  geom_point(data = plot_dat, aes(x = est_estimates, y = gen_estimates), color = "black")+
+sa1 <- ggplot()+
+  geom_point(data = plot_dat, aes(x = gen_estimates, y = est_estimates), color = "black")+
   geom_abline(intercept = 0, slope = 1, color = "gray")+
   labs(
     x = "estimand",
     y = "estimate") +
   facet_wrap(~parameters, scales = "free")+ them
+
+gen_plotting_data <- res[[3]][[2]]
+
+gen_plotting_data <- gen_plotting_data %>% 
+  pivot_longer(-subj_idx, 
+               names_to = "parameters",
+               values_to = "gen_estimates") 
+
+est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.301",col.names = labels)
+
+sa_hist3 <- ggplot(est_plotting_data, aes(sa))+
+  geom_histogram(fill = "white", color = "black", bins = 35) + 
+  scale_x_continuous(limits = c(0.00,0.15)) + them + 
+  labs(title= "SA = 0.01")+
+  geom_vline(xintercept = 0.01, color = "red")
+
+psych::describe(est_plotting_data$sa)
+
+plot_dat <- est_plotting_data %>% 
+  select(a_accuracy,a_speed, t,v_1,v_2,v_3,v_4) %>% 
+  mutate(subj_idx = seq_len(nrow(est_plotting_data))) %>% 
+  pivot_longer(-subj_idx, 
+               names_to = "parameters",
+               values_to = "est_estimates") %>% 
+  left_join(gen_plotting_data)
+
+plot_dat %>% 
+  select(-subj_idx) %>% 
+  group_by(parameters) %>% 
+  correlation::correlation()
+
+sa3 <- ggplot()+
+  geom_point(data = plot_dat, aes(x = gen_estimates, y = est_estimates), color = "black")+
+  geom_abline(intercept = 0, slope = 1, color = "gray")+
+  labs(
+    x = "estimand",
+    y = "estimate") +
+  facet_wrap(~parameters, scales = "free")+ them
+
+sa1 +  sa3
+
+sa_hist1 /sa_hist3
+########
+
+gen_plotting_data <- res[[5]][[2]]
+
+
+gen_plotting_data <- gen_plotting_data %>% 
+  pivot_longer(-subj_idx, 
+               names_to = "parameters",
+               values_to = "gen_estimates") 
+
+est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.300",col.names = labels)
+
+sa_hist5 <- ggplot(est_plotting_data, aes(sa))+
+  geom_histogram(fill = "white", color = "black", bins = 35) + 
+  scale_x_continuous(limits = c(0.00,0.15)) + them + 
+  labs(title= "SA = 0.07")+
+  geom_vline(xintercept = 0.07, color = "red")
+
+psych::describe(est_plotting_data$sa)
+
+plot_dat <- est_plotting_data %>% 
+  select(a_accuracy,a_speed, t,v_1,v_2,v_3,v_4) %>% 
+  mutate(subj_idx = seq_len(nrow(est_plotting_data))) %>% 
+  pivot_longer(-subj_idx, 
+               names_to = "parameters",
+               values_to = "est_estimates") %>% 
+  left_join(gen_plotting_data)
+
+plot_dat %>% 
+  select(-subj_idx) %>% 
+  group_by(parameters) %>% 
+  correlation::correlation()
+
+sa5 <- ggplot()+
+  geom_point(data = plot_dat, aes(x = gen_estimates, y = est_estimates), color = "black")+
+  geom_abline(intercept = 0, slope = 1, color = "gray")+
+  labs(
+    x = "estimand",
+    y = "estimate") +
+  facet_wrap(~parameters, scales = "free")+ them
+
+sa1 +  sa3 + sa5
+
+sa_hist1 /sa_hist3 / sa_hist5
 

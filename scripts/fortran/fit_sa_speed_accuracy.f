@@ -5,42 +5,35 @@ C     include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       include '/opt/intel/oneapi/mkl/2023.0.0/include/mkl.fi'
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
       double precision rt(2000),yi(2000),cond(2000),gu(20000),y(39)
-      integer mch(2000),mcond(2000),con(2000)
+c mcond refers to difficulty condition
+c minstr refers to speed/acc condition
+      integer mch(2000),mcond(2000),minstr(2000),con(2000)
       character(95) d1,d2,ff,d3,d4
       character(8) aa
+      character(9) cc
 c     d1="/u/russ/diff4/pb1-fast-dm/subj00"
 c     d4="/u/russ/diff4/pb1-fast-dm/subj0"
       d1="subj00"
       d4="subj0"
-C     d2=".pb1.p0_N0200M0600.fast-dm.csv"
-C      d2=".pb1.p4_N0200M0600.fast-dm.csv"
-C      d2=".ACCURACY.SA1.fast-dm.csv"
-C      d2=".ACCURACY.SA2.fast-dm.csv"
-C      d2=".ACCURACY.SA3.fast-dm.csv"
-C      d2=".ACCURACY.SA4.fast-dm.csv"
-      d2=".ACCURACY.SA5.fast-dm.csv"
-C      d2=".SPEED.SA1.fast-dm.csv"
-C      d2=".SPEED.SA2.fast-dm.csv"
-C      d2=".SPEED.SA3.fast-dm.csv"
-C      d2=".SPEED.SA4.fast-dm.csv"
-C      d2=".SPEED.SA5.fast-dm.csv"
+      d2=".SA1.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
       d2=adjustl(d2)
       d1=trim(d1)
       d4=trim(d4)
       d2=trim(d2)
+c n is the number of trials
       n=1200
       nn=2000
       mrun=9000
-      nfile=110
+      nfile=300
       iseed=12333
       call ranunif(gu,mrun,iseed)
       mmc=128
       call OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
-      do 7 k=1,10
+      do 7 k=1,50
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)
@@ -49,29 +42,24 @@ C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       print*,trim(ff)
       open(1,file=trim(ff))
       do 1 i=1,n
-      read(1,*)ich,rr,aa
-C     print*,ich,rr,aa
+      read(1,*)ich,rr,aa,cc
+c      print*,ich,rr,aa,cc
       rt(i)=1000.*rr
       mch(i)=ich
-C      if(aa.eq."high")mcond(i)=1
-C      if(aa.eq."low")mcond(i)=2
-C      if(aa.eq."vlow")mcond(i)=3
-C      if(aa.eq."nonword")mcond(i)=4
-
-      if(aa.eq."speed1")mcond(i)=1
-      if(aa.eq."speed2")mcond(i)=2
-      if(aa.eq."speed3")mcond(i)=3
-      if(aa.eq."speed4")mcond(i)=4
-
-C      if(aa.eq."accuracy1")mcond(i)=1
-C      if(aa.eq."accuracy2")mcond(i)=2
-C      if(aa.eq."accuracy3")mcond(i)=3
-C      if(aa.eq."accuracy4")mcond(i)=4
-C     write(*,"(f8.3,2i5,f8.3,i5)")yi(i),mcond(i),con(i),rt(i),mch(i)
+C change this to specific condition names
+      if(aa.eq."high")mcond(i)=1
+      if(aa.eq."low")mcond(i)=2
+      if(aa.eq."vlow")mcond(i)=3
+      if(aa.eq."nonword")mcond(i)=4
+C these are speed/accuracy conds
+      if(cc.eq."accuracy")minstr(i)=1
+      if(cc.eq."speed")minstr(i)=2
+C     write(*,"(f8.3,2i5,f8.3,i5)")yi(i),mcond(i),con(i),rt(i),mch(i),minstr(i)
     1 continue
       OPEN(14,STATUS='SCRATCH')
       OPEN(15,STATUS='SCRATCH')
       OPEN(16,STATUS='SCRATCH')
+      OPEN(17,STATUS='SCRATCH')
 C a,ter,eta,sz,4 v's For jm use x1=.15
 C NEED TO READ IN each RT and each y value and choice.
 C Need to pass an array of choice, RT for each condition - internal
@@ -82,42 +70,49 @@ C     write(*,*)n,(mcond(i),i=1,nn)
 C     write(*,*)n,(rt(i),i=1,nn)
       write(16,*)n,(mch(i),i=1,nn)
 C     write(*,*)n,(mch(i),i=1,nn)
+      write(17,*)n,(minstr(i),i=1,nn)
       rewind(14)
       rewind(15)
       rewind(16)
+      rewind(17)
+C initial points for estimation
+C boundary acc and speed
       x(1)=.11
-      x(2)=.24
-      x(3)=.13
-      x(4)=.03
-C  sz will be across trial range in a boundary
-C     x(5)=x(1)/2.
+      x(2)=.11
+C ter
+      x(3)=.24
+c eta
+      x(4)=.13
+c sa (was sz)
+      x(5)=.03
 C modify z to be a proportion of a
-      x(5)=0.5
-      x(6)= .20
-      x(7)= .05
-C a ter (eta) sz z st po (contam) then set of drift rates
+      x(6)=0.5
+c st
+      x(7)= .20
+c po (contam)
+c      x(8)= .05
+C set of drift rates
       x(8)= .32
       x(9)= .20
       x(10)= .1
       x(11)=-.35
-C x(6) is st, NO pz x(5)=z.
       NV=11
       el1=990000.
       el2=0.
-       ict=1
-       xinc=.04
+      ict=1
+      xinc=.04
       do 27 ij=1,3000
       if(ij.gt.1500)xinc=.01
-       if(ict.gt.8500)then
-       iseed=iseed+1
-       call ranunif(gu,mrun,iseed)
-       ict=1
-       endif
+      if(ict.gt.8500)then
+      iseed=iseed+1
+      call ranunif(gu,mrun,iseed)
+      ict=1
+      endif
       do 2 i=1,nv
       y(i)=x(i)+(.5-gu(ict))*x(i)*xinc
       ict=ict+1
     2 continue
-      y(7)=x(7)+(.5-gu(ict))*xinc
+c      y(8)=x(8)+(.5-gu(ict))*xinc
       ict=ict+1
       el2=fofs(nv,y)
       ra=exp(-el2+el1)
@@ -125,7 +120,6 @@ C x(6) is st, NO pz x(5)=z.
       ict=ict+1
       if(mod(ij,100).eq.1)write(*,"(i5,5f12.3)")ij,el2,el1,ra,rnd
       if(mod(ij,100).eq.1)write(*,"(9f8.3)")(x(i),i=1,nv)
-C      if(ij.eq.3000)write(122,"(11f8.3,f15.5)")(x(i),i=1,nv),el2
       if(ij.eq.3000)write(nfile,"(11f8.3,f15.5)")(x(i),i=1,nv),el2
       if(ra.gt.rnd)then
       do 11 i=1,nv
@@ -156,58 +150,62 @@ C     WRITE(4,47)(X(I),I=1,NV)
       END 
       DOUBLE PRECISION FUNCTION FOFS(NV,X)
       implicit double precision (a-h,o-z)
-      double precision X(NV),r(11),y(11),rs(11)
+      double precision X(NV),r(12),y(12),rs(12)
       double precision rt(2000),yi(2000),xml(2000)
       integer mch(2000),mcond(2000),con(2000)
+      integer minstr(2000)
       nn=2000
       read(14,*)n,(mcond(i),i=1,nn)
       read(15,*)n,(rt(i),i=1,nn)
       read(16,*)n,(mch(i),i=1,nn)
+      read(17,*)n,(minstr(i),i=1,nn)
       rewind(14)
       rewind(15)
       rewind(16)
+      rewind(17)
       pxa=0.
       do 3 i=1,n
     3 if(rt(i).gt.pxa)pxa=rt(i)
       pxa=pxa/1000.
       s=.1
-      if(x(7).lt.0.0D0)x(7)=0.0D0
-      pz=x(7)
+c      if(x(8).lt.0.0D0)x(8)=0.0D0
+      pz=0
       m=5
       mm=1
       rmax=2.D0
-      if(x(1).lt.0.065)x(1)=0.065
-      if(x(1).gt.0.240)x(1)=0.240
-      a=X(1)
-      z=x(5)*x(1)
-      if(x(2).gt.0.640)x(2)=0.640
-      terr=x(2)
-      if(x(3).lt.0.01)x(3)=0.01
-      if(x(3).gt.0.3)x(3)=0.3
-      sc=x(3)
-      if(x(6).gt..45)x(6)=.45
-      if(x(6).le.0.03)x(6)=0.06
-      st=x(6)
+      if(x(3).gt.0.640)x(3)=0.640
+      terr=x(3)
+      if(x(4).lt.0.01)x(4)=0.01
+      if(x(4).gt.0.3)x(4)=0.3
+      sc=x(4)
+      if(x(7).gt..45)x(7)=.45
+      if(x(7).le.0.03)x(7)=0.06
+      st=x(7)
       fofs=0.
-      if(x(4).lt.0.002)x(4)=0.002
-C     if(.9*x(4).gt.z.or..9*x(4).gt.a-z)x(4)=min(1.8*z,1.8*(a-z))
-      sg=x(4)
+      if(x(5).lt.0.002)x(5)=0.002
+C     if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
+      sg=x(5)
       xmlh=0.
 !$omp parallel
 !$omp do private(j,zz,v,vv,rr,chi,jj)
       do j=1,n
+      kk=minstr(j)
+      if(x(0+kk).lt.0.065)x(0+kk)=0.065
+      if(x(0+kk).gt.0.240)x(0+kk)=0.240
+      a=x(0+kk)
+      z=x(6)*x(0+kk)
       jj=mcond(j)
       if(x(7+jj).gt.0.7)x(7+jj)=0.7
       if(x(7+jj).lt.-0.7)x(7+jj)=-0.7
       vv=X(7+jj)
       if(mch(j).eq.1)then
 C     zz=z
-      zz=x(5)
+      zz=x(6)
       v=-vv
       endif
       if(mch(j).eq.0)then
 C     zz=a-z
-      zz=1.-x(5)
+      zz=1.-x(6)
       v=vv
       endif
       rr=rt(j)/1000.

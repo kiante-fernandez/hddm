@@ -59,6 +59,9 @@ generate_subject_parameters <- function(genparam, ns) {
   
   params_temp$t <- runif(ns, min = genparam$t_mu - genparam$t_sd, max = genparam$t_mu + genparam$t_sd)
 
+  params_temp$st <- genparam$t_sd
+  params_temp$eta <- genparam$v_sd
+  
   return(params_temp)
 }
 
@@ -108,15 +111,15 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
       a_accuracy_temp <- runif(nt, min = parameters$a_accuracy[[subj_idx]] - genparam$sa, max = parameters$a_accuracy[[subj_idx]] + genparam$sa)
       
       # speed
-      temp_ds1[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds2[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds3[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds4[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds1[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds2[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds3[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds4[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
       # accuracy
-      temp_ds5[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds6[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds7[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds8[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds5[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds6[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds7[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds8[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
       
     }
     ds <- list(temp_ds1, temp_ds2, temp_ds3, temp_ds4, temp_ds5, temp_ds6, temp_ds7, temp_ds8)

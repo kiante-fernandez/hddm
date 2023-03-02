@@ -12,7 +12,6 @@ C      include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       d1="subj00"
       d4="subj0"
 C     d2=".pb1.p0_N0200M0600.fast-dm.csv"
-C      d2=".speed.acc.test.csv"
       d2=".SA1.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
@@ -23,7 +22,7 @@ C      d2=".speed.acc.test.csv"
       n=1200
       nn=2000
       mrun=9000
-      nfile=201
+      nfile=200
       iseed=12333
       call ranunif(gu,mrun,iseed)
 C NOTE THAT THIS VALUE IS 128 IN ROGER"S SA CODE
@@ -40,7 +39,7 @@ C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       print*,trim(ff)
       open(1,file=trim(ff))
       do 1 i=1,n
-      read(1,*)ich,rr,aa
+      read(1,*)ich,rr,aa,cc
 C     print*,ich,rr,aa
       rt(i)=1000.*rr
       mch(i)=ich
@@ -84,33 +83,33 @@ c eta
 c sz
       x(5)=.03
 C modify z to be a proportion of a
-      x(6)=0.5
+c      x(6)=0.5
 c st
-      x(7)= .20
+      x(6)= .20
 c po (contam)
-      x(8)= .05
+c      x(7)= .05
 C set of drift rates
-      x(9)= .32
-      x(10)= .20
-      x(11)= .1
-      x(12)=-.35
-      NV=12
+      x(7)= .32
+      x(8)= .20
+      x(9)= .1
+      x(10)=-.35
+      NV=10
       el1=990000.
       el2=0.
-       ict=1
-       xinc=.04
+      ict=1
+      xinc=.04
       do 27 ij=1,3000
       if(ij.gt.1500)xinc=.01
-       if(ict.gt.8500)then
-       iseed=iseed+1
-       call ranunif(gu,mrun,iseed)
-       ict=1
-       endif
+      if(ict.gt.8500)then
+      iseed=iseed+1
+      call ranunif(gu,mrun,iseed)
+      ict=1
+      endif
       do 2 i=1,nv
       y(i)=x(i)+(.5-gu(ict))*x(i)*xinc
       ict=ict+1
     2 continue
-      y(7)=x(7)+(.5-gu(ict))*xinc
+c      y(7)=x(7)+(.5-gu(ict))*xinc
       ict=ict+1
       el2=fofs(nv,y)
       ra=exp(-el2+el1)
@@ -166,8 +165,8 @@ C     WRITE(4,47)(X(I),I=1,NV)
     3 if(rt(i).gt.pxa)pxa=rt(i)
       pxa=pxa/1000.
       s=.1
-      if(x(8).lt.0.0D0)x(8)=0.0D0
-      pz=x(8)
+c      if(x(7).lt.0.0D0)x(7)=0.0D0
+      pz=0
       m=5
       mm=1
       rmax=2.D0
@@ -176,12 +175,12 @@ C     WRITE(4,47)(X(I),I=1,NV)
       if(x(4).lt.0.01)x(4)=0.01
       if(x(4).gt.0.3)x(4)=0.3
       sc=x(4)
-      if(x(7).gt..45)x(7)=.45
-      if(x(7).le.0.03)x(7)=0.06
-      st=x(7)
+      if(x(6).gt..45)x(6)=.45
+      if(x(6).le.0.03)x(6)=0.06
+      st=x(6)
       fofs=0.
       if(x(5).lt.0.002)x(5)=0.002
-C     if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
+c      if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
       sg=x(5)
       xmlh=0.
 !$omp parallel
@@ -191,19 +190,19 @@ C     if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
       if(x(0+kk).lt.0.065)x(0+kk)=0.065
       if(x(0+kk).gt.0.240)x(0+kk)=0.240
       a=x(0+kk)
-      z=x(6)*x(0+kk)
+      z=0.5*x(0+kk)
       jj=mcond(j)
-      if(x(8+jj).gt.0.7)x(8+jj)=0.7
-      if(x(8+jj).lt.-0.7)x(8+jj)=-0.7
-      vv=X(8+jj)
+      if(x(6+jj).gt.0.7)x(6+jj)=0.7
+      if(x(6+jj).lt.-0.7)x(6+jj)=-0.7
+      vv=X(6+jj)
       if(mch(j).eq.1)then
-C     zz=z
-      zz=x(6)
+      zz=z
+c      zz=x(6)
       v=-vv
       endif
       if(mch(j).eq.0)then
-C     zz=a-z
-      zz=1.-x(6)
+      zz=a-z
+c      zz=1.-z
       v=vv
       endif
       rr=rt(j)/1000.
