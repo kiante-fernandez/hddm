@@ -30,7 +30,7 @@ C NOTE THAT THIS VALUE IS 128 IN ROGER"S SA CODE
       CALL OMP_SET_NUM_THREADS(mmc)
       ict=1
 C change number after comma to number of subjects
-      do 7 k=1,1
+      do 7 k=1,50
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)

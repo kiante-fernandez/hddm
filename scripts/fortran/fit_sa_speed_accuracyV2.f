@@ -23,16 +23,13 @@ c     d4="/u/russ/diff4/pb1-fast-dm/subj0"
       d4=trim(d4)
       d2=trim(d2)
 c n is the number of trials
-C      n=1200
-      n = 10000
-c nn is suppose to be the same value?
-C      nn=2000
-      nn=10000
+      n=6400
+      nn=2000
       mrun=9000
       nfile=100
       iseed=12333
       call ranunif(gu,mrun,iseed)
-      mmc=128
+      mmc=32
       call OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
@@ -196,23 +193,24 @@ C     if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
       if(x(0+kk).lt.0.065)x(0+kk)=0.065
       if(x(0+kk).gt.0.240)x(0+kk)=0.240
       a=x(0+kk)
-      z=x(6)*x(0+kk)
+c      z=x(6)*x(0+kk)
+      z=x(6)
       jj=mcond(j)
       if(x(7+jj).gt.0.7)x(7+jj)=0.7
       if(x(7+jj).lt.-0.7)x(7+jj)=-0.7
       vv=X(7+jj)
       if(mch(j).eq.1)then
-C     zz=z
-      zz=x(6)
+c      zz=z
+      zz=z
       v=-vv
       endif
       if(mch(j).eq.0)then
-C     zz=a-z
-      zz=1.-x(6)
+c      zz=a-z
+      zz=1.-z
       v=vv
       endif
       rr=rt(j)/1000.
-C     write(*,"(4i5,2f9.3)")j,jj,con(j),mch(j),v,zz
+C      write(*,"(4i5,2f9.3)")j,jj,con(j),mch(j),v,zz
       call cor(a,zz,v,s,terr,a1,rr,sc,m,sg,chi,st
      *,x1,x2,pz,pxa)
       xml(j)=chi
