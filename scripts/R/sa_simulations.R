@@ -49,21 +49,22 @@ genparam$t_mu <- 0.2846
 # genparam$t_mu <- 0.5000
 
 # Group-level variability
-genparam$t_sd <- 0.2
-genparam$v_sd <- 0.03 # this is our `eta` for our purposes
+genparam$t_sd <- 0.1
+genparam$v_sd <- 0.04 # this is our `eta` for our purposes
 genparam$a_sd <- 0.02 # is this still desired
 
 # select a range of sa values
 sa <- c(0, .001, .01, .05, .07)
 
 nt <- 1250 #this generates trials per condition and difficulty
+# nt <- 150 #this generates trials per condition and difficulty
 
-ns <- 1 # number of subjects
+ns <- 10 # number of subjects
 
 #save the res for later reference (but we dont need to save everytime)
 if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
   res <- generate_sa_simulations(genparam, sa, nt, ns)
-  save(res, file = here::here("scripts", "R", "generated_single_sim_params.RData"))
+  # save(res, file = here::here("scripts", "R", "generated_single_sim_params.RData"))
   
   save(res, file = here::here("scripts", "R", "generated_sim_params.RData"))
 }else {

@@ -88,7 +88,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
   sim_res <- vector(mode = "list", length = length(sa))
   # sa_idx = 5
   parameters <- generate_subject_parameters(genparam, ns)
-  
+  sa_idx = 5
   for (sa_idx in seq_along(sa)) {
     # change sa parameter value
     genparam$sa <- sa[[sa_idx]]
@@ -103,7 +103,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
     temp_ds6 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
     temp_ds7 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
     temp_ds8 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
-
+    # subj_idx = 1
     for (subj_idx in seq_along(parameters$subj_idx)) {
       
       a_speed_temp <- runif(nt, min = parameters$a_speed[[subj_idx]] - genparam$sa, max = parameters$a_speed[[subj_idx]] + genparam$sa)

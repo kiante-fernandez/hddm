@@ -132,7 +132,7 @@ qplot <- function(data) {
       shape = ""
     ) +
     facet_wrap(~instructions)+
-    scale_y_continuous(limits = c(.1, 1.5))+
+    # scale_y_continuous(limits = c(.1, 2))+
     geom_hline(yintercept = 1.2, color = "grey", linetype = "dashed")+
     geom_hline(yintercept = 1, color = "grey", linetype = "dashed")+
     geom_hline(yintercept = .8, color = "grey", linetype = "dashed")+
@@ -168,6 +168,21 @@ if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
 gen_plotting_data <- res[[1]][[2]]
 labels <- c("a_accuracy","a_speed", "t", "eta", "sa", "z/a","st", "v_1", "v_2","v_3", "v_4", "likelihood")
 est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.300", col.names = labels)
+
+cor_sa1 <- est_plotting_data %>% 
+  dplyr::select(-likelihood) %>% 
+  cor() %>% 
+  ggcorrplot::ggcorrplot(type = "upper",
+                         lab = TRUE)+
+  theme_classic()+
+  labs(x = "", y = "") +
+  theme(
+    axis.text = element_text(face = "bold"),
+    text = element_text(size = 15),
+    axis.title = element_text(face = "bold"),
+    axis.text.y = element_text(face="bold",size=10, angle=40),
+    axis.text.x = element_text(face="bold",size=10, angle=40, hjust= .9)
+  )
 # est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.300",col.names = labels)
 
 # plot_dat <- data_frame(gen_a_speed = plotting_data$a_speed,
@@ -274,6 +289,21 @@ gen_plotting_data <- gen_plotting_data %>%
 
 est_plotting_data <- read.table("~/Documents/hddm/scripts/fortran/fort.304",col.names = labels)
 
+cor_sa5 <- est_plotting_data %>% 
+  dplyr::select(-likelihood) %>% 
+  cor() %>% 
+  ggcorrplot::ggcorrplot(type = "upper",
+                         lab = TRUE)+
+  theme_classic()+
+  labs(x = "", y = "") +
+  theme(
+    axis.text = element_text(face = "bold"),
+    text = element_text(size = 15),
+    axis.title = element_text(face = "bold"),
+    axis.text.y = element_text(face="bold",size=10, angle=40),
+    axis.text.x = element_text(face="bold",size=10, angle=40, hjust= .9)
+  )
+
 sa_hist5 <- ggplot(est_plotting_data, aes(sa))+
   geom_histogram(fill = "white", color = "black", bins = 35) + 
   scale_x_continuous(limits = c(0.00,0.20)) +
@@ -320,8 +350,7 @@ sa1 + sa5
 sa_hist1 / sa_hist5
 eta_hist1/ eta_hist5
 
-
-
+cor_sa1 + cor_sa5
 
 gen_plotting_data <- res[[1]][[2]]
 
@@ -375,10 +404,11 @@ saz <- ggplot()+
   facet_wrap(~parameters, scales = "free")+ them
 
 
-res[[5]][[2]]
+
+res[[1]][[2]]
 
 gen_plotting_data <- res[[1]][[2]]
-gen_plotting_data$sa <- 0.00
+gen_plotting_data$sa <- "0.0/0.07"
 gen_plotting_data$parameters <- "generated"
 
 labels <- c("a_accuracy","a_speed", "t", "eta", "sa", "z/a","st", "v_1", "v_2","v_3", "v_4", "likelihood")
@@ -391,6 +421,47 @@ knitr::kable(rbind(gen_plotting_data[,-1],
                    est_plotting_datasa1[,dput(names(gen_plotting_data[,-1]))],
                    est_plotting_datasa5[,dput(names(gen_plotting_data[,-1]))]), digits = 3)
 
+#105 is with new starting value of 0.01 and sa = 0 
+#106 is with new starting value of 0.01 and sa = 0.07
+#106 is with new starting value of 0.09 and sa = 0.07
+
+gen_plotting_data <- res[[1]][[2]]
+gen_plotting_data$sa <- "0.0/0.07"
+gen_plotting_data$parameters <- "generated"
+
+labels <- c("a_accuracy","a_speed", "t", "eta", "sa", "z/a","st", "v_1", "v_2","v_3", "v_4", "likelihood")
+est_plotting_sp_1 <- read.table("~/Documents/hddm/scripts/fortran/fort.105", col.names = labels)
+est_plotting_sp_2 <- read.table("~/Documents/hddm/scripts/fortran/fort.106", col.names = labels)
+est_plotting_sp_3 <- read.table("~/Documents/hddm/scripts/fortran/fort.108", col.names = labels)
+
+est_plotting_sp_1$parameters <- "sa = 0.00; starting point 0.01"
+est_plotting_sp_2$parameters <- "sa = 0.07; starting point 0.01"
+est_plotting_sp_3$parameters <- "sa = 0.07; starting point 0.09"
+
+knitr::kable(rbind(gen_plotting_data[,-1],
+                   est_plotting_sp_1[,dput(names(gen_plotting_data[,-1]))],
+                   est_plotting_sp_2[,dput(names(gen_plotting_data[,-1]))],
+                   est_plotting_sp_3[,dput(names(gen_plotting_data[,-1]))]), digits = 3)
 
 
-write.csv(res[[1]][[2]], "~/Documents/hddm/scripts/R/generated_parameters.csv") 
+
+gen_plotting_data <- res[[1]][[2]]
+gen_plotting_data$sa <- "0.0"
+gen_plotting_data$parameters <- "generated"
+
+
+labels <- c("a_accuracy","a_speed", "t", "eta", "sa", "z/a","st", "v_1", "v_2","v_3", "v_4", "likelihood")
+est_plotting_sp_1 <- read.table("~/Documents/hddm/scripts/fortran/fort.112", col.names = labels)
+est_plotting_sp_1$subj_idx <- 1:10
+est_plotting_sp_1$parameters <- "estimated"
+
+res_temp <- knitr::kable(dplyr::arrange(rbind(gen_plotting_data,
+                                  est_plotting_sp_1[,dput(names(gen_plotting_data))]), subj_idx), digits = 3)
+
+res_temp <- dplyr::arrange(rbind(gen_plotting_data,
+                                 est_plotting_sp_1[,dput(names(gen_plotting_data))]), subj_idx)
+
+res_temp <- dplyr::mutate_if(res_temp, is.numeric, round, 4)
+
+
+write.csv(res_temp, "~/Documents/hddm/scripts/R/SA_recovery_10_subjects_20230309.csv") 
