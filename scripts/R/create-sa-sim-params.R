@@ -49,16 +49,22 @@ generate_subject_parameters <- function(genparam, ns) {
   params_temp <- data.frame(subj_idx = 1:ns)
 
   # Subj-level parameters
-  params_temp$a_speed <- runif(ns, min = genparam$a_speed_mu - genparam$a_sd, max = genparam$a_speed_mu + genparam$a_sd)
-  params_temp$a_accuracy <- runif(ns, min = genparam$a_accuracy_mu - genparam$a_sd, max = genparam$a_accuracy_mu + genparam$a_sd)
+  #for the case  where we add variation to a for each subject
+  # params_temp$a_speed <- runif(ns, min = genparam$a_speed_mu - genparam$a_sd, max = genparam$a_speed_mu + genparam$a_sd)
+  # params_temp$a_accuracy <- runif(ns, min = genparam$a_accuracy_mu - genparam$a_sd, max = genparam$a_accuracy_mu + genparam$a_sd)
   
-  params_temp$v_1 <- rnorm(ns, genparam$v_1_mu, genparam$v_sd)
-  params_temp$v_2 <- rnorm(ns, genparam$v_2_mu, genparam$v_sd)
-  params_temp$v_3 <- rnorm(ns, genparam$v_3_mu, genparam$v_sd)
-  params_temp$v_4 <- rnorm(ns, genparam$v_4_mu, genparam$v_sd)
+  params_temp$a_speed <- genparam$a_speed_mu
+  params_temp$a_accuracy <- genparam$a_accuracy_mu
   
-  params_temp$t <- runif(ns, min = genparam$t_mu - genparam$t_sd, max = genparam$t_mu + genparam$t_sd)
-
+  #note the sd change here to 0 
+  params_temp$v_1 <- rnorm(ns, genparam$v_1_mu, 0)
+  params_temp$v_2 <- rnorm(ns, genparam$v_2_mu, 0)
+  params_temp$v_3 <- rnorm(ns, genparam$v_3_mu, 0)
+  params_temp$v_4 <- rnorm(ns, genparam$v_4_mu, 0)
+  
+  # params_temp$t <- runif(ns, min = genparam$t_mu - genparam$t_sd, max = genparam$t_mu + genparam$t_sd)
+  params_temp$t <- genparam$t_mu
+  
   params_temp$st <- genparam$t_sd
   params_temp$eta <- genparam$v_sd
   
@@ -88,7 +94,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
   sim_res <- vector(mode = "list", length = length(sa))
   # sa_idx = 5
   parameters <- generate_subject_parameters(genparam, ns)
-  sa_idx = 5
+  # sa_idx = 5
   for (sa_idx in seq_along(sa)) {
     # change sa parameter value
     genparam$sa <- sa[[sa_idx]]
@@ -153,22 +159,25 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 }
 
 
-prepare_fortran <- function(res, sa_condition) {
+prepare_fortran <- function(res, experiment) {
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
   # ----------
   # res: the output of ``generate_sa_simulations`. it is a list`
+  # res: the output of ``generate_sa_simulations`. it is a df from the exp 2
   #
   # condition: either "ACCURACY" or "SPEED"
   #
   # sa_condition: which level of sa to reorganize the data
+  # experiment: the letter association with the parameter values set
   #
   # Returns
   # -------
   # a set of csv's in the fortran folder
-  
-  temp_df <- res[[sa_condition]][["dataset"]]
+  #
+  # temp_df <- res[[sa_condition]][["dataset"]]
+  temp_df <- res
   # change response to zero/one
   temp_df$response <- as.integer(factor(temp_df$response)) - 1
   
@@ -189,17 +198,16 @@ prepare_fortran <- function(res, sa_condition) {
     temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
 
     if (subject_idx < 10) {
-      temp_file_name <- paste0("subj00", subject_idx, ".SA", sa_condition, ".fast-dm.csv")
+      temp_file_name <- paste0("subj00", subject_idx, ".", experiment, ".fast-dm.csv")
     } else {
-      temp_file_name <- paste0("subj0", subject_idx, ".SA", sa_condition, ".fast-dm.csv")
+      temp_file_name <- paste0("subj0", subject_idx, ".", experiment, ".fast-dm.csv")
     }
+    # TODO what happens with the 1ooth subject and the fitting code
     # stringr::str_detect(temp_df_subject,"\")
     # print(temp_file_name)
     write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote=FALSE, col.names = F)
   }
 }
-
-#TODO create function to bootstrap the datasets for fitting
 
 
 

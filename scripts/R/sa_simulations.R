@@ -96,17 +96,65 @@ system2(command = "ifort", args = c("-O3", "test_speed_accuracy.f","-qopenmp","-
 #TODO allow the .f file to take and input and output command so we can run 
 #     the files without have to reload them each time
 
-# labels <- c("a", "ter", "eta", "sa", "z/a","st","po", "v1", "v2","v3", "v4", "likelihood")
+###########parameter recovery study 2##########
+# create a list with the population level parameters
 
-labels <- c("a_acc","a_speed", "ter", "eta", "sa", "z/a","st","po", "v1", "v2","v3", "v4", "likelihood")
-# res_1 <- read.table("~/Documents/hddm/scripts/fortran/fort.101", col.names = labels)
-# res_2 <- read.table("~/Documents/hddm/scripts/fortran/fort.300",col.names = labels)
-# 
-# res_3 <- read.table("~/Documents/hddm/scripts/fortran/fort.103",col.names = labels)
-# res_4 <- read.table("~/Documents/hddm/scripts/fortran/fort.104",col.names = labels)
-# res_5 <- read.table("~/Documents/hddm/scripts/fortran/fort.105",col.names = labels)
+if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
+  
+  res_parameter_sets <- vector(mode = "list", length = 12)
+  
+  parameter_sets <- vector(mode = "list", length = 12)
+  names(parameter_sets) <- letters[1:12]
+  # acc, speed, ter, eta, sa, st, v1, v2, v3, v4
+  parameter_sets[[1]] <- c(0.08, 0.16, 0.3, 0.08, 0.00, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[2]] <-c(0.08, 0.16, 0.3, 0.08, 0.01, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[3]] <-c(0.08, 0.16, 0.3, 0.16, 0.00, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[4]] <-c(0.08, 0.16, 0.3, 0.16, 0.01, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[5]] <-c(0.08, 0.16, 0.3, 0.08, 0.05, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[6]] <-c(0.08, 0.16, 0.3, 0.16, 0.05, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_sets[[7]] <-c(0.08, 0.16, 0.3, 0.08, 0.00, 0.1, 0.5, 0.40, 0.2, 0.1)
+  parameter_sets[[8]] <-c(0.08, 0.16, 0.3, 0.08, 0.01, 0.1, 0.5, 0.40, 0.2, 0.1)
+  parameter_sets[[9]] <-c(0.08, 0.16, 0.3, 0.08, 0.05, 0.1, 0.5, 0.40, 0.2, 0.1)
+  parameter_sets[[10]] <-c(0.08, 0.16, 0.3, 0.16, 0.00, 0.1, 0.5, 0.40, 0.2, 0.1)
+  parameter_sets[[11]] <-c(0.08, 0.16, 0.3, 0.16, 0.01, 0.1, 0.5, 0.40, 0.2, 0.1)
+  parameter_sets[[12]] <-c(0.08, 0.16, 0.3, 0.16, 0.05, 0.1, 0.5, 0.40, 0.2, 0.1)
+  
+  nt <- 250 #this generates trials per condition and difficulty
+  ns <- 100 # number of subjects
+  
+  for (parmaset_idx in seq_along(parameter_sets)){
+    
+    parmaset_temp <- parameter_sets[[parmaset_idx]]
+    
+    genparam <- vector(mode = "list")
+    # Group-level means
+    genparam$a_speed_mu <- parmaset_temp[[1]]
+    genparam$a_accuracy_mu <- parmaset_temp[[2]]
+    genparam$t_mu <-  parmaset_temp[[3]]
+    # Group-level variability
+    genparam$v_sd <- parmaset_temp[[4]]
+    genparam$sa <- parmaset_temp[[5]]
+    genparam$t_sd <- parmaset_temp[[6]]
+    #drift rates 
+    genparam$v_1_mu <-  parmaset_temp[[7]]
+    genparam$v_2_mu <-  parmaset_temp[[8]]
+    genparam$v_3_mu <-  parmaset_temp[[9]]
+    genparam$v_4_mu <-  parmaset_temp[[10]]
+    
+    res_parameter_sets[[parmaset_idx]] <- generate_sa_simulations(genparam, genparam$sa, nt, ns)
+    
+  }
+  names(res_parameter_sets) <- letters[1:12]
+  
+  save(parameter_sets, res_parameter_sets, file = here::here("scripts", "R", "exp_2_generated_sim_params.RData"))
+}else {
+  load(here::here("scripts", "R", "exp_2_generated_sim_params.RData"))
+}
 
-# TODO fitting plot subject parameter gen_value est_value then do the diagonal 
-# combine the speed and acc within same plot so you can see if one condition over
-#another if fitting well
+# set_idx = 1
+#PREPARE FILES FOR FORTRAN
+for (set_idx in seq_along(parameter_sets)){
+  data_set <- res_parameter_sets[[letters[set_idx]]][[1]][["dataset"]]
+  prepare_fortran(data_set, letters[[set_idx]])
+}
 

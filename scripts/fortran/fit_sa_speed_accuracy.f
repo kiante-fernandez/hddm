@@ -4,10 +4,10 @@ C     include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       implicit double precision (a-h,o-z)
       include '/opt/intel/oneapi/mkl/2023.0.0/include/mkl.fi'
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
-      double precision rt(11000),yi(11000),cond(11000),gu(20000),y(39)
+      double precision rt(3000),yi(3000),cond(3000),gu(20000),y(39)
 c mcond refers to difficulty condition
 c minstr refers to speed/acc condition
-      integer mch(11000),mcond(11000),minstr(11000),con(11000)
+      integer mch(3000),mcond(3000),minstr(3000),con(3000)
       character(95) d1,d2,ff,d3,d4
       character(8) aa
       character(9) cc
@@ -15,7 +15,7 @@ c     d1="/u/russ/diff4/pb1-fast-dm/subj00"
 c     d4="/u/russ/diff4/pb1-fast-dm/subj0"
       d1="subj00"
       d4="subj0"
-      d2=".SA1.fast-dm.csv"
+      d2=".a.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
       d2=adjustl(d2)
@@ -23,18 +23,18 @@ c     d4="/u/russ/diff4/pb1-fast-dm/subj0"
       d4=trim(d4)
       d2=trim(d2)
 c n is the number of trials
-      n=10000
+      n=2000
 C      n = 6400
-      nn=11000
+      nn=3000
       mrun=9000
-      nfile=112
+      nfile=400
       iseed=12333
       call ranunif(gu,mrun,iseed)
       mmc=120
       call OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
-      do 7 k=1,10
+      do 7 k=1,99
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)
@@ -152,10 +152,10 @@ C     WRITE(4,47)(X(I),I=1,NV)
       DOUBLE PRECISION FUNCTION FOFS(NV,X)
       implicit double precision (a-h,o-z)
       double precision X(NV),r(12),y(12),rs(12)
-      double precision rt(11000),yi(11000),xml(11000)
-      integer mch(11000),mcond(11000),con(11000)
-      integer minstr(11000)
-      nn=11000
+      double precision rt(3000),yi(3000),xml(3000)
+      integer mch(3000),mcond(3000),con(3000)
+      integer minstr(3000)
+      nn=3000
       read(14,*)n,(mcond(i),i=1,nn)
       read(15,*)n,(rt(i),i=1,nn)
       read(16,*)n,(mch(i),i=1,nn)
@@ -186,8 +186,8 @@ c      if(x(8).lt.0.0D0)x(8)=0.0D0
       if(x(5).lt.0.002)x(5)=0.002
 C     if(.9*x(5).gt.z.or..9*x(5).gt.a-z)x(5)=min(1.8*z,1.8*(a-z))
 C BS CHANGE Keeping SA fixed at 0.001
-c      sg=x(5)
-      sg=0.001
+      sg=x(5)
+C      sg=0.001
       xmlh=0.
 !$omp parallel
 !$omp do private(j,zz,v,vv,rr,chi,jj)
@@ -197,7 +197,9 @@ c      sg=x(5)
       if(x(0+kk).gt.0.240)x(0+kk)=0.240
       a=x(0+kk)
 c      z=x(6)*x(0+kk)
-      z=x(6)
+C      z=x(6)
+C  BS fixed z to a/2 
+      z = 0.50
       jj=mcond(j)
       if(x(7+jj).gt.0.7)x(7+jj)=0.7
       if(x(7+jj).lt.-0.7)x(7+jj)=-0.7
