@@ -49,24 +49,26 @@ generate_subject_parameters <- function(genparam, ns) {
   params_temp <- data.frame(subj_idx = 1:ns)
 
   # Subj-level parameters
-  #for the case  where we add variation to a for each subject
+  # for the case  where we add variation to a for each subject
   # params_temp$a_speed <- runif(ns, min = genparam$a_speed_mu - genparam$a_sd, max = genparam$a_speed_mu + genparam$a_sd)
   # params_temp$a_accuracy <- runif(ns, min = genparam$a_accuracy_mu - genparam$a_sd, max = genparam$a_accuracy_mu + genparam$a_sd)
-  
+
   params_temp$a_speed <- genparam$a_speed_mu
   params_temp$a_accuracy <- genparam$a_accuracy_mu
-  
-  #note the sd change here to 0 
+
+  # note the sd change here to 0
   params_temp$v_1 <- rnorm(ns, genparam$v_1_mu, 0)
   params_temp$v_2 <- rnorm(ns, genparam$v_2_mu, 0)
   params_temp$v_3 <- rnorm(ns, genparam$v_3_mu, 0)
   params_temp$v_4 <- rnorm(ns, genparam$v_4_mu, 0)
-  
+
   # params_temp$t <- runif(ns, min = genparam$t_mu - genparam$t_sd, max = genparam$t_mu + genparam$t_sd)
   params_temp$t <- genparam$t_mu
-  
+
   params_temp$st <- genparam$t_sd
   params_temp$eta <- genparam$v_sd
+
+  params_temp$sa <- genparam$sa
   
   return(params_temp)
 }
@@ -111,22 +113,38 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
     temp_ds8 <- vector(mode = "list", length = length(unique(parameters$subj_idx)))
     # subj_idx = 1
     for (subj_idx in seq_along(parameters$subj_idx)) {
-      
-      a_speed_temp <- runif(nt, min = parameters$a_speed[[subj_idx]] - genparam$sa, max = parameters$a_speed[[subj_idx]] + genparam$sa)
-      
-      a_accuracy_temp <- runif(nt, min = parameters$a_accuracy[[subj_idx]] - genparam$sa, max = parameters$a_accuracy[[subj_idx]] + genparam$sa)
-      
+      # old def
+      # a_speed_temp <- runif(nt, min = parameters$a_speed[[subj_idx]] - genparam$sa, max = parameters$a_speed[[subj_idx]] + genparam$sa)
+      # a_accuracy_temp <- runif(nt, min = parameters$a_accuracy[[subj_idx]] - genparam$sa, max = parameters$a_accuracy[[subj_idx]] + genparam$sa)
+      # RR def
+      a_speed_temp <- runif(nt, min = parameters$a_speed[[subj_idx]] - genparam$sa / 2, max = parameters$a_speed[[subj_idx]] + genparam$sa / 2)
+      a_accuracy_temp <- runif(nt, min = parameters$a_accuracy[[subj_idx]] - genparam$sa / 2, max = parameters$a_accuracy[[subj_idx]] + genparam$sa / 2)
       # speed
-      temp_ds1[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds2[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds3[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds4[subj_idx] <- list(map_df(a_speed_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
+      temp_ds1[subj_idx] <- list(map_df(a_speed_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds2[subj_idx] <- list(map_df(a_speed_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds3[subj_idx] <- list(map_df(a_speed_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds4[subj_idx] <- list(map_df(a_speed_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
       # accuracy
-      temp_ds5[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds6[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds7[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      temp_ds8[subj_idx] <- list(map_df(a_accuracy_temp,function (.){rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)}))
-      
+      temp_ds5[subj_idx] <- list(map_df(a_accuracy_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_1[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds6[subj_idx] <- list(map_df(a_accuracy_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_2[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds7[subj_idx] <- list(map_df(a_accuracy_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_3[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
+      temp_ds8[subj_idx] <- list(map_df(a_accuracy_temp, function(.) {
+        rtdists::rdiffusion(n = 1, a = ., v = parameters$v_4[[subj_idx]], sv = parameters$eta[[subj_idx]], st0 = parameters$st[[subj_idx]], t0 = parameters$t[[subj_idx]], z = 0.5 * ., s = 0.1)
+      }))
     }
     ds <- list(temp_ds1, temp_ds2, temp_ds3, temp_ds4, temp_ds5, temp_ds6, temp_ds7, temp_ds8)
     # clean up the datasets
@@ -180,18 +198,18 @@ prepare_fortran <- function(res, experiment) {
   temp_df <- res
   # change response to zero/one
   temp_df$response <- as.integer(factor(temp_df$response)) - 1
-  
+
   # round off the RT (looks like that is what it is in the sheet too)
   temp_df$rt <- round(temp_df$rt, 4)
-  #select a subset of the data from the condition of interest
-  temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1,2,3,4), labels = c("high","low", "vlow", "nonword"))
+  # select a subset of the data from the condition of interest
+  temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1, 2, 3, 4), labels = c("high", "low", "vlow", "nonword"))
   # if (condition == "SPEED") {
   #   temp_df <- temp_df[temp_df$instructions == "speed", ]
   # } else if (condition == "ACCURACY") {
   #   temp_df <- temp_df[temp_df$instructions == "accuracy", ]
   # }
   # create one string for the condition
-  temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty","instructions"), sep = " ")
+  temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
   temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
 
   for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
@@ -205,12 +223,6 @@ prepare_fortran <- function(res, experiment) {
     # TODO what happens with the 1ooth subject and the fitting code
     # stringr::str_detect(temp_df_subject,"\")
     # print(temp_file_name)
-    write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote=FALSE, col.names = F)
+    write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
   }
 }
-
-
-
-
-
-

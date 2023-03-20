@@ -9,15 +9,14 @@ if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
 }
 
 #combine all data from generated for simulations fot plot 
-# data = rbind(res[[1]][[1]],
-#              res[[2]][[1]],
-#              res[[3]][[1]],
-#              res[[4]][[1]],
-#              res[[5]][[1]])
+data = rbind(res[[1]][[1]],
+             res[[2]][[1]],
+             res[[3]][[1]],
+             res[[4]][[1]],
+             res[[5]][[1]])
 
 data = rbind(res[[1]][[1]],
              res[[3]][[1]],
-             res[[4]][[1]],
              res[[5]][[1]])
 
 them <- theme(
@@ -138,7 +137,7 @@ obs <- sim_rt %>%
       shape = "",
       color = "SA"
     )+
-    scale_y_continuous(limits = c(.1, 1.5))+
+    scale_y_continuous(limits = c(.1, 2))+
     geom_hline(yintercept = 1.2, color = "grey", linetype = "dashed")+
     geom_hline(yintercept = 1, color = "grey", linetype = "dashed")+
     geom_hline(yintercept = .8, color = "grey", linetype = "dashed")+
