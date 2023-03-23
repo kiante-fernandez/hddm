@@ -177,7 +177,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 }
 
 
-prepare_fortran <- function(res, experiment) {
+prepare_fortran <- function(res, experiment, method) {
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
@@ -190,39 +190,110 @@ prepare_fortran <- function(res, experiment) {
   # sa_condition: which level of sa to reorganize the data
   # experiment: the letter association with the parameter values set
   #
+  # method: an indicator of the format of the output for fitting
   # Returns
   # -------
   # a set of csv's in the fortran folder
   #
   # temp_df <- res[[sa_condition]][["dataset"]]
-  temp_df <- res
-  # change response to zero/one
-  temp_df$response <- as.integer(factor(temp_df$response)) - 1
-
-  # round off the RT (looks like that is what it is in the sheet too)
-  temp_df$rt <- round(temp_df$rt, 4)
-  # select a subset of the data from the condition of interest
-  temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1, 2, 3, 4), labels = c("high", "low", "vlow", "nonword"))
-  # if (condition == "SPEED") {
-  #   temp_df <- temp_df[temp_df$instructions == "speed", ]
-  # } else if (condition == "ACCURACY") {
-  #   temp_df <- temp_df[temp_df$instructions == "accuracy", ]
-  # }
-  # create one string for the condition
-  temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
-  temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
-
-  for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
-    temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
-
-    if (subject_idx < 10) {
-      temp_file_name <- paste0("subj00", subject_idx, ".", experiment, ".fast-dm.csv")
-    } else {
-      temp_file_name <- paste0("subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+  if (method == 1){
+    temp_df <- res
+    # change response to zero/one
+    temp_df$response <- as.integer(factor(temp_df$response)) - 1
+    
+    # round off the RT (looks like that is what it is in the sheet too)
+    temp_df$rt <- round(temp_df$rt, 4)
+    # select a subset of the data from the condition of interest
+    temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1, 2, 3, 4), labels = c("high", "low", "vlow", "nonword"))
+    # if (condition == "SPEED") {
+    #   temp_df <- temp_df[temp_df$instructions == "speed", ]
+    # } else if (condition == "ACCURACY") {
+    #   temp_df <- temp_df[temp_df$instructions == "accuracy", ]
+    # }
+    # create one string for the condition
+    temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
+    temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
+    
+    for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
+      temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
+      
+      if (subject_idx < 10) {
+        temp_file_name <- paste0("subj00", subject_idx, ".", experiment, ".fast-dm.csv")
+      } else {
+        temp_file_name <- paste0("subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+      }
+      # TODO what happens with the 1ooth subject and the fitting code
+      # stringr::str_detect(temp_df_subject,"\")
+      # print(temp_file_name)
+      write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
     }
-    # TODO what happens with the 1ooth subject and the fitting code
-    # stringr::str_detect(temp_df_subject,"\")
-    # print(temp_file_name)
-    write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
+  } else if (method == 2){
+    temp_df <- res
+    # temp_df <- res_parameter_sets[[letters[1]]][["dataset"]]
+    #select single instruction
+    temp_df <- temp_df[temp_df$instructions =="speed",]
+    
+    # change response to zero/one
+    temp_df$response <- as.integer(factor(temp_df$response)) - 1
+    temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1, 2, 3, 4), labels = c("high", "low", "vlow", "nonword"))
+    
+    # round off the RT (looks like that is what it is in the sheet too)
+    temp_df$rt <- round(temp_df$rt, 3) * 1000
+
+    for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
+      temp_df_subject <- temp_df[temp_df$subject_id == subject_idx,]
+      
+      #define the up and down datasets
+      temp_df_up <- temp_df_subject[temp_df_subject$response == 1,]
+      temp_df_down <- temp_df_subject[temp_df_subject$response == 0,]
+      
+      c1 <- matrix(,nrow = 1 + dim(temp_df_up[temp_df_up$difficulty == "high",])[1], 1)
+      c1[1] <- dim(temp_df_up[temp_df_up$difficulty == "high",])[1]
+      c1[-1] <- temp_df_up[temp_df_up$difficulty == "high",]$rt[order(temp_df_up[temp_df_up$difficulty == "high",]$rt)]
+      
+      c2 <- matrix(,nrow = 1 + dim(temp_df_up[temp_df_up$difficulty == "low",])[1], 1)
+      c2[1] <- dim(temp_df_up[temp_df_up$difficulty == "low",])[1]
+      c2[-1] <- temp_df_up[temp_df_up$difficulty == "low",]$rt[order(temp_df_up[temp_df_up$difficulty == "low",]$rt)]
+      
+      c3 <- matrix(,nrow = 1 + dim(temp_df_up[temp_df_up$difficulty == "vlow",])[1], 1)
+      c3[1] <- dim(temp_df_up[temp_df_up$difficulty == "vlow",])[1]
+      c3[-1] <- temp_df_up[temp_df_up$difficulty == "vlow",]$rt[order(temp_df_up[temp_df_up$difficulty == "vlow",]$rt)]
+      
+      c4 <- matrix(,nrow = 1 + dim(temp_df_up[temp_df_up$difficulty == "nonword",])[1], 1)
+      c4[1] <- dim(temp_df_up[temp_df_up$difficulty == "nonword",])[1]
+      c4[-1] <- temp_df_up[temp_df_up$difficulty == "nonword",]$rt[order(temp_df_up[temp_df_up$difficulty == "nonword",]$rt)]
+      
+      ups <- rbind(c1,c2,c3,c4)
+      
+      c1 <- matrix(,nrow = 1 + dim(temp_df_down[temp_df_down$difficulty == "high",])[1], 1)
+      c1[1] <- dim(temp_df_down[temp_df_down$difficulty == "high",])[1]
+      c1[-1] <- temp_df_down[temp_df_down$difficulty == "high",]$rt[order(temp_df_down[temp_df_down$difficulty == "high",]$rt)]
+      
+      c2 <- matrix(,nrow = 1 + dim(temp_df_down[temp_df_down$difficulty == "low",])[1], 1)
+      c2[1] <- dim(temp_df_down[temp_df_down$difficulty == "low",])[1]
+      c2[-1] <- temp_df_down[temp_df_down$difficulty == "low",]$rt[order(temp_df_down[temp_df_down$difficulty == "low",]$rt)]
+      
+      c3 <- matrix(,nrow = 1 + dim(temp_df_down[temp_df_down$difficulty == "vlow",])[1], 1)
+      c3[1] <- dim(temp_df_down[temp_df_down$difficulty == "vlow",])[1]
+      c3[-1] <- temp_df_down[temp_df_down$difficulty == "vlow",]$rt[order(temp_df_down[temp_df_down$difficulty == "vlow",]$rt)]
+      
+      c4 <- matrix(,nrow = 1 + dim(temp_df_down[temp_df_down$difficulty == "nonword",])[1], 1)
+      c4[1] <- dim(temp_df_down[temp_df_down$difficulty == "nonword",])[1]
+      c4[-1] <- temp_df_down[temp_df_down$difficulty == "nonword",]$rt[order(temp_df_down[temp_df_down$difficulty == "nonword",]$rt)]
+      
+      downs <- rbind(c1,c2,c3,c4)
+      
+      if (subject_idx < 10) {
+        temp_file_name_up <- paste0("up.","subj00", subject_idx, ".", experiment, ".fast-dm.csv")
+        temp_file_name_down <- paste0("down.","subj00", subject_idx, ".", experiment, ".fast-dm.csv")
+      } else {
+        temp_file_name_up <- paste0("up.","subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+        temp_file_name_down <- paste0("down.","subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+      }
+      write.table(ups, here::here("scripts", "fortran", temp_file_name_up), row.names = F, quote = FALSE, col.names = F)
+      write.table(downs, here::here("scripts", "fortran", temp_file_name_down), row.names = F, quote = FALSE, col.names = F)
+    }
   }
 }
+
+
