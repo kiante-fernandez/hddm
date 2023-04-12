@@ -157,6 +157,18 @@ if (!file.exists(here::here("scripts", "R", "generated_sim_params.RData"))) {
 # PREPARE FILES FOR FORTRAN
 for (set_idx in seq_along(parameter_sets)) {
   data_set <- res_parameter_sets[[letters[set_idx]]][["dataset"]]
-  
-  prepare_fortran(data_set, letters[[set_idx]])
+  prepare_fortran(data_set, letters[[set_idx]], method = 1, condition = "SPEED")
 }
+
+
+########### parameter recovery study 3 ##########
+# running individual fits with varying number of trials
+#
+# using bootstrap procedure similar to:
+# Ratcliff, R., & Childers, R. (2015). 
+# Individual differences and fitting methods 
+# for the two-choice diffusion model of decision making.
+# Decision, 2(4), 237–279. https://doi.org/10.1037/dec0000030
+
+
+

@@ -177,7 +177,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 }
 
 
-prepare_fortran <- function(res, experiment, method) {
+prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY") {
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
@@ -205,11 +205,11 @@ prepare_fortran <- function(res, experiment, method) {
     temp_df$rt <- round(temp_df$rt, 4)
     # select a subset of the data from the condition of interest
     temp_df$difficulty <- factor(temp_df$difficulty, levels = c(1, 2, 3, 4), labels = c("high", "low", "vlow", "nonword"))
-    # if (condition == "SPEED") {
-    #   temp_df <- temp_df[temp_df$instructions == "speed", ]
-    # } else if (condition == "ACCURACY") {
-    #   temp_df <- temp_df[temp_df$instructions == "accuracy", ]
-    # }
+    if (condition == "SPEED") {
+      temp_df <- temp_df[temp_df$instructions == "speed", ]
+    } else if (condition == "ACCURACY") {
+      temp_df <- temp_df[temp_df$instructions == "accuracy", ]
+    }
     # create one string for the condition
     temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
     temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")

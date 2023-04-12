@@ -2,12 +2,10 @@ C data file. onset early, y early, onset late, y late, coherence, stim
 C type (face/car), RT, correct vs error.
       implicit double precision (a-h,o-z)
 c      include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
-C      include "mkl.fi"
       include '/opt/intel/oneapi/mkl/2023.0.0/include/mkl.fi'
-
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
-      double precision rt(3000),yi(3000),cond(3000),gu(80000),y(39)
-      integer mch(3000),mcond(3000),con(3000)
+      double precision rt(1000),yi(1000),cond(1000),gu(80000),y(39)
+      integer mch(1000),mcond(1000),con(1000)
       character(95) d1,d2,ff,d3,d4
       character(8) aa
 C     d1="/u/russ/diff4/pb1-fast-dm/subj00"
@@ -16,7 +14,7 @@ C     d2=".pb1.p4_N0200M0600.fast-dm.csv"
       d1="subj00"
       d4="subj0"
 C      d2=".SA0.12.fast-dm.csv"
-      d2="subj001.a.fast-dm.csv"
+      d2=".l.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
       d2=adjustl(d2)
@@ -25,10 +23,8 @@ C      d2=".SA0.12.fast-dm.csv"
       d2=trim(d2)
 c      n=1600
 c      nn=400
-C      n=8000
-C      nn=2000
-      n=2000
-      nn=3000
+      n=1000
+      nn=250
       mrun=9000
       nfile=500
       iseed=12333
@@ -37,7 +33,7 @@ C      nn=2000
       CALL OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
-      do 7 k=1,1
+      do 7 k=1,99
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)
@@ -80,7 +76,7 @@ c ter
 c eta
       x(3)=.23
 c sa (was sz)
-      x(4)=.13
+      x(4)=.10
 c z
       x(5)=x(1)/2.
 c st
@@ -88,10 +84,10 @@ c st
 c po (contam)
       x(7)= .0001
 C drift ratesintercepts.
-      x(8)= .3
+      x(8)= .32
       x(9)= .20
       x(10)= .1
-      x(11)=-.1
+      x(11)= .01
 C x(6) is st, NO pz x(5)=z.
       NV=11
 C     el1=990000.
@@ -150,9 +146,9 @@ C     WRITE(4,47)(X(I),I=1,NV)
       DOUBLE PRECISION FUNCTION FOFS(NV,X)
       implicit double precision (a-h,o-z)
       double precision X(NV),r(11),y(11),rs(11)
-      double precision rt(3000),yi(3000),xml(3000)
-      integer mch(3000),mcond(3000),con(3000)
-      nn=3000
+      double precision rt(1000),yi(1000),xml(1000)
+      integer mch(1000),mcond(1000),con(1000)
+      nn=1000
 C This is where Roger changes how the file is read      
 c      n=nn/4
 c      kk=0
@@ -215,6 +211,8 @@ C     write(*,"(3i6,f9.3)")(i,mcond(i),mch(i),rt(i),i=1,nn)
       fofs=0.
       if(x(4).lt.0.0002)x(4)=0.0002
 C     if(.9*x(4).gt.z.or..9*x(4).gt.a-z)x(4)=min(1.8*z,1.8*(a-z))
+C safe guard blair spoke about
+C      if(a-0.5*x(4).lt.0.001)x(4)=x(4)*1.8
       sg=x(4)
       xmlh=0.
 !$omp parallel
@@ -224,11 +222,11 @@ C     if(.9*x(4).gt.z.or..9*x(4).gt.a-z)x(4)=min(1.8*z,1.8*(a-z))
 C     if(x(7+jj).gt.0.7)x(7+jj)=0.7
 C     if(x(7+jj).lt.-0.7)x(7+jj)=-0.7
       vv=X(7+jj)
-      if(mch(j).eq.0)then
+      if(mch(j).eq.1)then
       zz=z
       v=-vv
       endif
-      if(mch(j).eq.1)then
+      if(mch(j).eq.0)then
       zz=a-z
       v=vv
       endif
@@ -237,7 +235,7 @@ C     write(*,"(4i5,8f7.3)")j,jj,mcond(j),mch(j),v,a,zz,rr,pxa,terr
       call cor(a,zz,v,s,terr,a1,rr,sc,m,sg,chi,st
      *,x1,x2,pz,pxa)
       xml(j)=chi
-C     print*,chi
+c      print*,chi
       enddo
 !$omp end parallel
       xmlh=0.0D0
@@ -273,7 +271,7 @@ C     COMMON PI,UU,S,A,Z,XB,SC,T,NN,KTORP
       H=Z*B
       SF=0.0D0
       IF(KTORP.EQ.1) GO TO 1
-      M=8000
+      M=1000
       DO 3 N=1,M
       R=G+C*N*N
       RR=R*T
@@ -754,9 +752,10 @@ C     CHECK FOR MINIMUM
      *',E11.4)
       WRITE(*,668) (P(IL,J),J=1,NV),Y(IL)
       if(iter.ne.100)
-     *print*,"a ter eta sz 4drifts (then 2 dummy drifts) z po st"
+C     *print*,"a ter eta sz 4drifts (then 2 dummy drifts) z po st"
+     *print*,"a ter eta sa z st po v1 v2 v3 v4 logL"
       if(iter.ne.60)WRITE(*,"(20f10.4)") (P(IL,J),J=1,NV),Y(IL)
-      if(iter.ne.60)WRITE(nfile,"(9f10.4,f14.4,10f10.4)") 
+      if(iter.ne.60)WRITE(12,"(9f10.4,f14.4,10f10.4)") 
      *(P(IL,J),J=1,NV),Y(IL)
   668 FORMAT(' ','BEST PARAMETER ESTIMATES',39F10.3)
       RETURN
