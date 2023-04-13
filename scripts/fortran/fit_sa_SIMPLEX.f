@@ -6,20 +6,24 @@ c      include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
       double precision rt(1000),yi(1000),cond(1000),gu(80000),y(39)
       integer mch(1000),mcond(1000),con(1000)
-      character(95) d1,d2,ff,d3,d4
+      character(95) d1,d2,ff,d3,d4,d5
+C      character(95) d1,d2,ff,d3,d4
       character(8) aa
 C     d1="/u/russ/diff4/pb1-fast-dm/subj00"
 C     d4="/u/russ/diff4/pb1-fast-dm/subj0"
 C     d2=".pb1.p4_N0200M0600.fast-dm.csv"
-      d1="subj00"
-      d4="subj0"
+      d1="boot00"
+      d4="boot0"
+      d5="boot"
 C      d2=".SA0.12.fast-dm.csv"
-      d2=".l.fast-dm.csv"
+      d2=".e.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
+      d5=adjustl(d5)
       d2=adjustl(d2)
       d1=trim(d1)
       d4=trim(d4)
+      d5=trim(d5)
       d2=trim(d2)
 c      n=1600
 c      nn=400
@@ -33,12 +37,13 @@ c      nn=400
       CALL OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
-      do 7 k=1,99
+      do 7 k=1,300
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)
       ff=trim(d1)//trim(d3)//trim(d2)
       if(k.gt.9)ff=trim(d4)//trim(d3)//trim(d2)
+C      if(k.gt.99)ff=trim(d5)//trim(d3)//trim(d2)
       print*,trim(ff)
       open(1,file=trim(ff))
       do 1 i=1,n

@@ -177,7 +177,7 @@ generate_sa_simulations <- function(genparam, sa, nt, ns) {
 }
 
 
-prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY") {
+prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY", boots = FALSE) {
   # prepare_fortran:  organizes and saves the data for the FORTRAN fitting procedure
   #
   # Arguments
@@ -186,6 +186,8 @@ prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY")
   # res: the output of ``generate_sa_simulations`. it is a df from the exp 2
   #
   # condition: either "ACCURACY" or "SPEED"
+  #
+  # boots: are we saving bootstrap datasets T/F
   #
   # sa_condition: which level of sa to reorganize the data
   # experiment: the letter association with the parameter values set
@@ -214,19 +216,33 @@ prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY")
     temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
     temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
     
-    for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
-      temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
-      
-      if (subject_idx < 10) {
-        temp_file_name <- paste0("subj00", subject_idx, ".", experiment, ".fast-dm.csv")
-      } else {
-        temp_file_name <- paste0("subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+    if (boots == TRUE){
+        boots_idx <- unique(res$nboots) 
+        if (boots_idx < 10) {
+          temp_file_name <- paste0("boot00", boots_idx, ".", experiment, ".fast-dm.csv")
+        } else if (boots_idx < 100){
+          temp_file_name <- paste0("boot0", boots_idx, ".", experiment, ".fast-dm.csv")
+        } else {
+          temp_file_name <- paste0("boot", boots_idx, ".", experiment, ".fast-dm.csv")
+        }
+        write.table(temp_df, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
+    } else if (boots == FALSE){
+      for (subject_idx in 1:length(unique(temp_df$subject_idx))) {
+        
+        temp_df_subject <- temp_df[temp_df$subject_id == subject_idx, "data"]
+        
+        if (subject_idx < 10) {
+          temp_file_name <- paste0("subj00", subject_idx, ".", experiment, ".fast-dm.csv")
+        } else {
+          temp_file_name <- paste0("subj0", subject_idx, ".", experiment, ".fast-dm.csv")
+        }
+        # TODO what happens with the 1ooth subject and the fitting code
+        # stringr::str_detect(temp_df_subject,"\")
+        # print(temp_file_name)
+        write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
       }
-      # TODO what happens with the 1ooth subject and the fitting code
-      # stringr::str_detect(temp_df_subject,"\")
-      # print(temp_file_name)
-      write.table(temp_df_subject, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
     }
+    
   } else if (method == 2){
     temp_df <- res
     # temp_df <- res_parameter_sets[[letters[1]]][["dataset"]]

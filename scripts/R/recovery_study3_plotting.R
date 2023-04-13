@@ -19,7 +19,7 @@ if (!file.exists(here::here("scripts", "R", "subject_generated_sim_params.RData"
   parameter_set <- vector(mode = "list", length = 1)
   names(parameter_set) <- letters[1]
   # speed, acc, ter, eta, sa, st, v1, v2, v3, v4
-  parameter_set <- c(0.08, 0.16, 0.3, 0.08, 0.15, 0.1, 0.4, 0.25, 0.1, 0.0)
+  parameter_set <- c(0.08, 0.16, 0.3, 0.08, 0.15, 0.1, 0.4, 0.25, 0.1, 0.0) #set e
   parmaset_temp <- parameter_set
   genparam <- vector(mode = "list")
   # Group-level means
@@ -45,5 +45,47 @@ if (!file.exists(here::here("scripts", "R", "subject_generated_sim_params.RData"
   save(parameter_set, res_parameter_sets, file = here::here("scripts", "R", "subject_generated_sim_params.RData"))
 } else {
   load(here::here("scripts", "R", "subject_generated_sim_params.RData"))
+}
+
+#bootstrap samples of the datasets
+
+# Create a sample dataframe
+nboots = 300
+res_boot_datasets <- vector(mode = "list",length = length(nts))
+for (i in 1:length(nts)) {
+  res_boot_datasets[[i]] <- rep(list(NULL),nboots)
+}
+
+df_temp <- res_parameter_sets$NumberObservations_250$dataset
+#get only a single instructions
+df_temp <- df_temp[df_temp$instructions == "speed",]
+
+for (foo in 1:length(nts)){
+
+  df_tempv1 <- df_temp[df_temp$difficulty == 1,]
+  df_tempv2 <- df_temp[df_temp$difficulty == 2,]
+  df_tempv3 <- df_temp[df_temp$difficulty == 3,]
+  df_tempv4 <- df_temp[df_temp$difficulty == 4,]
+  
+for (fee in 1:nboots){
+  
+  boot_tempv1 <- df_tempv1[sample(1:nrow(df_tempv1), nts[foo], replace = TRUE),]
+  boot_tempv2 <- df_tempv2[sample(1:nrow(df_tempv2), nts[foo], replace = TRUE),]
+  boot_tempv3 <- df_tempv3[sample(1:nrow(df_tempv3), nts[foo], replace = TRUE),]
+  boot_tempv4 <- df_tempv4[sample(1:nrow(df_tempv4), nts[foo], replace = TRUE),]
+  
+  res_boot_datasets[[foo]][[fee]] <- rbind(boot_tempv1,boot_tempv2,boot_tempv3, boot_tempv4)
+  
+}
+}
+names(res_boot_datasets) <- do.call(rbind,map(nts, function(.){paste0("NumberObservations_",.)} ))
+
+# PREPARE FILES FOR FORTRAN
+# set_idx = 1
+
+for (set_idx in 1:nboots) {
+  data_set <-  res_boot_datasets[[5]][[set_idx]]  #where 5 is 250 trials
+  data_set$nboots <- set_idx
+  prepare_fortran(data_set, letters[[5]], method = 1, condition = "SPEED", boots = TRUE)
 }
 
