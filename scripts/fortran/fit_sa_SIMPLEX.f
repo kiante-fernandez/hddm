@@ -4,19 +4,23 @@ C type (face/car), RT, correct vs error.
 c      include '/opt/intel/Compiler/11.1/064/mkl/include/mkl_vsl.fi'
       include '/opt/intel/oneapi/mkl/2023.0.0/include/mkl.fi'
       double precision X(39),S(39),aq(7),bq(7),naq(7),nbq(7)
-      double precision rt(1000),yi(1000),cond(1000),gu(80000),y(39)
-      integer mch(1000),mcond(1000),con(1000)
+      double precision rt(4),yi(4),cond(4),gu(80000),y(39)
+      integer mch(4),mcond(4),con(4)
       character(95) d1,d2,ff,d3,d4,d5
 C      character(95) d1,d2,ff,d3,d4
       character(8) aa
-C     d1="/u/russ/diff4/pb1-fast-dm/subj00"
-C     d4="/u/russ/diff4/pb1-fast-dm/subj0"
-C     d2=".pb1.p4_N0200M0600.fast-dm.csv"
-      d1="boot00"
-      d4="boot0"
-      d5="boot"
-C      d2=".SA0.12.fast-dm.csv"
-      d2=".e.fast-dm.csv"
+
+C Define the command line arguments
+      character(255) :: arg1
+
+C Read command line arguments
+      CALL GET_COMMAND_ARGUMENT(1, arg1)
+      d2 = TRIM(arg1)
+
+      d1="subj00"
+      d4="subj0"
+      d5="subj"
+C      d2=".e.fast-dm.csv"
       d1=adjustl(d1)
       d4=adjustl(d4)
       d5=adjustl(d5)
@@ -27,10 +31,20 @@ C      d2=".SA0.12.fast-dm.csv"
       d2=trim(d2)
 c      n=1600
 c      nn=400
-      n=1000
-      nn=250
+C      n=1000
+C      nn=250
+c n=500
+c nn=125
+C      n=200
+C      nn=50
+C      n=40
+C      nn=10
+C      n = 16
+C      nn = 4
+      n = 4
+      nn = 1
       mrun=9000
-      nfile=500
+      nfile=300
       iseed=12333
       call ranunif(gu,mrun,iseed)
       mmc=64
@@ -43,8 +57,18 @@ C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       d3=adjustl(d3)
       ff=trim(d1)//trim(d3)//trim(d2)
       if(k.gt.9)ff=trim(d4)//trim(d3)//trim(d2)
-C      if(k.gt.99)ff=trim(d5)//trim(d3)//trim(d2)
+      IF (k.gt.99) THEN
+      write(d3,"(i3)")k 
+      d3=adjustl(d3)
+      ff=trim(d5)//trim(d3)//trim(d2)
+      END IF
+C      if(k.gt.99)write(d3,"(i3)")k 
+C      d3=adjustl(d3)
+C      ff=trim(d5)//trim(d3)//trim(d2)
+C      end if
       print*,trim(ff)
+C      print*,trim(d3)
+C      print*,trim(ff)
       open(1,file=trim(ff))
       do 1 i=1,n
       read(1,*)ich,rr,aa
@@ -95,40 +119,6 @@ C drift ratesintercepts.
       x(11)= .01
 C x(6) is st, NO pz x(5)=z.
       NV=11
-C     el1=990000.
-C     el2=0.
-C      ict=1
-C      xinc=.05
-C     do 27 ij=1,9000
-C     if(ij.gt.2900)xinc=.02
-C     if(ij.eq.1500)x(3)=x(3)*1.2
-C     if(ij.eq.2500)x(3)=x(3)*1.2
-C      if(ict.gt.8500)then
-C      iseed=iseed+1
-C      call ranunif(gu,mrun,iseed)
-C      ict=1
-C      endif
-C     do 2 i=1,nv
-C     y(i)=x(i)+(.5-gu(ict))*x(i)*xinc
-C     ict=ict+1
-C   2 continue
-C     y(3)=x(3)+(.5-gu(ict))*xinc*x(3)*2.
-C     ict=ict+1
-C     el2=fofs(nv,y)
-C     ra=exp(-el2+el1)
-C     rnd=gu(ict)
-C     ict=ict+1
-C     if(mod(ij,100).eq.1)write(*,"(i5,5f12.3)")ij,el2,el1,ra,rnd
-C     if(mod(ij,100).eq.1)write(*,"(9f8.3)")(x(i),i=1,nv)
-C     if(ij.eq.6000)write(122,"(11f8.3,f15.5)")(x(i),i=1,nv),el2
-C     if(ra.gt.rnd)then
-C     do 11 i=1,nv
-C  11 x(i)=y(i)
-C     write(132,"(2i5,11f7.3,f15.5)")k,ij,(x(i),i=1,nv),el2
-C     el1=el2
-C     endif
-C  27 continue
-
       ITMAX=400
       do 4 j=1,2
       CRIT=1.0E-10
@@ -151,9 +141,9 @@ C     WRITE(4,47)(X(I),I=1,NV)
       DOUBLE PRECISION FUNCTION FOFS(NV,X)
       implicit double precision (a-h,o-z)
       double precision X(NV),r(11),y(11),rs(11)
-      double precision rt(1000),yi(1000),xml(1000)
-      integer mch(1000),mcond(1000),con(1000)
-      nn=1000
+      double precision rt(4),yi(4),xml(4)
+      integer mch(4),mcond(4),con(4)
+      nn=4
 C This is where Roger changes how the file is read      
 c      n=nn/4
 c      kk=0

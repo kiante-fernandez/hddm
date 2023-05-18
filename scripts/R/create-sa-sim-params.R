@@ -215,15 +215,16 @@ prepare_fortran <- function(res, experiment, method = 1, condition = "ACCURACY",
     # create one string for the condition
     temp_df <- tidyr::unite(temp_df, col = "condition", c("difficulty", "instructions"), sep = " ")
     temp_df <- tidyr::unite(temp_df, col = "data", c("response", "rt", "condition"), sep = " ")
-    
+    #make sure the function only takes the data
+    temp_df <- temp_df[,"data"]
     if (boots == TRUE){
         boots_idx <- unique(res$nboots) 
         if (boots_idx < 10) {
-          temp_file_name <- paste0("boot00", boots_idx, ".", experiment, ".fast-dm.csv")
+          temp_file_name <- paste0("subj00", boots_idx, ".", experiment, ".fast-dm.csv")
         } else if (boots_idx < 100){
-          temp_file_name <- paste0("boot0", boots_idx, ".", experiment, ".fast-dm.csv")
+          temp_file_name <- paste0("subj0", boots_idx, ".", experiment, ".fast-dm.csv")
         } else {
-          temp_file_name <- paste0("boot", boots_idx, ".", experiment, ".fast-dm.csv")
+          temp_file_name <- paste0("subj", boots_idx, ".", experiment, ".fast-dm.csv")
         }
         write.table(temp_df, here::here("scripts", "fortran", temp_file_name), row.names = F, quote = FALSE, col.names = F)
     } else if (boots == FALSE){

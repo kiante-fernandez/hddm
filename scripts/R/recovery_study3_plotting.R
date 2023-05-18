@@ -9,6 +9,48 @@
 # then we just do that for different numbers of trials. In principle you only need the big simulated data
 #then you sample from that, but I am just generating another set of less trials to hold the data 
 # in a manner that conforms to what I have already done
+source(here::here("scripts", "R", "create-sa-sim-params.R"))
+
+apa <- function(x, title = " ") {
+  gt(x) %>%
+    tab_options(
+      table.border.top.color = "white",
+      heading.title.font.size = px(16),
+      column_labels.border.top.width = 3,
+      column_labels.border.top.color = "black",
+      column_labels.border.bottom.width = 3,
+      column_labels.border.bottom.color = "black",
+      table_body.border.bottom.color = "black",
+      table.border.bottom.color = "white",
+      table.width = pct(100),
+      table.background.color = "white"
+    ) %>%
+    cols_align(align="center") %>%
+    tab_style(
+      style = list(
+        cell_borders(
+          sides = c("top", "bottom"),
+          color = "white",
+          weight = px(1)
+        ),
+        cell_text(
+          align="center"
+        ),
+        cell_fill(color = "white", alpha = NULL)
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
+    #title setup
+    tab_header(
+      title = html("<i>", title, "</i>")
+    ) %>%
+    opt_align_table_header(align = "left")
+}
+
+
 if (!file.exists(here::here("scripts", "R", "subject_generated_sim_params.RData"))) {
   
   nts <- c(4, 10, 50, 125, 250)
@@ -51,12 +93,19 @@ if (!file.exists(here::here("scripts", "R", "subject_generated_sim_params.RData"
 
 # Create a sample dataframe
 nboots = 300
+# nts <- c(4, 10, 50, 125, 250) #number of trials
+nts <- c(1, 4, 10, 50, 125, 250) #number of trials
+
+ns <- 1 # number of subjects
+
 res_boot_datasets <- vector(mode = "list",length = length(nts))
 for (i in 1:length(nts)) {
   res_boot_datasets[[i]] <- rep(list(NULL),nboots)
 }
 
 df_temp <- res_parameter_sets$NumberObservations_250$dataset
+# df_temp <- res_parameter_sets$NumberObservations_125$dataset
+
 #get only a single instructions
 df_temp <- df_temp[df_temp$instructions == "speed",]
 
@@ -84,8 +133,93 @@ names(res_boot_datasets) <- do.call(rbind,map(nts, function(.){paste0("NumberObs
 # set_idx = 1
 
 for (set_idx in 1:nboots) {
-  data_set <-  res_boot_datasets[[5]][[set_idx]]  #where 5 is 250 trials
+  data_set <-  res_boot_datasets[[1]][[set_idx]]  #where 5 is 250 trials
   data_set$nboots <- set_idx
   prepare_fortran(data_set, letters[[5]], method = 1, condition = "SPEED", boots = TRUE)
 }
+
+
+############
+library(dplyr)
+library(tidyr)
+library(gt)
+
+labels <- c("a_speed", "t", "eta", "sa", "z/a","st","po", "v_1", "v_2","v_3", "v_4", "likelihood")
+
+est_data_e_250 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_250.txt",col.names = labels)
+est_data_e_250 <- est_data_e_250[seq_len(nrow(est_data_e_250)) %% 2 == 0,]
+est_data_e_250$parameter_set <- "e"
+est_data_e_250$num_trials <- 250
+
+est_data_e_125 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_125.txt",col.names = labels)
+est_data_e_125 <- est_data_e_125[seq_len(nrow(est_data_e_125)) %% 2 == 0,]
+est_data_e_125$parameter_set <- "e"
+est_data_e_125$num_trials <- 125
+
+est_data_e_50 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_50.txt",col.names = labels)
+est_data_e_50 <- est_data_e_50[seq_len(nrow(est_data_e_50)) %% 2 == 0,]
+est_data_e_50$parameter_set <- "e"
+est_data_e_50$num_trials <- 50
+
+est_data_e_10 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_10.txt",col.names = labels)
+est_data_e_10 <- est_data_e_10[seq_len(nrow(est_data_e_10)) %% 2 == 0,]
+est_data_e_10$parameter_set <- "e"
+est_data_e_10$num_trials <- 10
+
+est_data_e_4 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_4.txt",col.names = labels)
+est_data_e_4 <- est_data_e_4[seq_len(nrow(est_data_e_4)) %% 2 == 0,]
+est_data_e_4$parameter_set <- "e"
+est_data_e_4$num_trials <- 4
+
+est_data_e_1 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_1.txt",col.names = labels)
+est_data_e_1 <- est_data_e_1[seq_len(nrow(est_data_e_1)) %% 2 == 0,]
+est_data_e_1$parameter_set <- "e"
+est_data_e_1$num_trials <- 1
+
+# est_data_all <- rbind(est_data_e_250,est_data_e_125, 
+#                       est_data_e_50,est_data_e_10, est_data_e_4
+# )
+est_data_all <- rbind(est_data_e_250,est_data_e_125, 
+                      est_data_e_50,est_data_e_10,
+                      est_data_e_4, est_data_e_1)
+
+se <- function(x){sqrt(sum((x-mean(x))^2/(length(x)-1)))/sqrt(length(x))}
+
+table_dat <- est_data_all %>% 
+  group_by(parameter_set) %>% 
+  dplyr::select(-c(po,likelihood)) %>% 
+  pivot_longer(-c(parameter_set, num_trials),
+               names_to = "parameters",
+               values_to = "gen_estimates") %>% 
+  group_by(parameter_set, num_trials, parameters) %>% 
+  summarise(mean = round(mean(gen_estimates),4),
+            sd = round(sd(gen_estimates),4),
+            se = round(se(gen_estimates), 4)
+            ) %>% 
+  pivot_longer(-c("parameter_set","num_trials","parameters"),
+               names_to = "stats",
+               values_to = "estimates") %>% 
+  pivot_wider(names_from = parameters,
+              values_from = estimates,) 
+
+
+true_val <- res_parameter_sets$NumberObservations_250$parameters[,c("a_speed","eta","sa","st", "t", 
+                                                        "v_1", "v_2","v_3", "v_4")]
+true_val
+table_dat[order(table_dat$stats),]  %>%  group_by(stats) %>% apa(
+  "Means and Standard Deviations of Parameter Values Recovered
+From the SIMPLEX Fitting Method Across Varying Numbers of Observations") %>% 
+  tab_footnote(
+    rbind(names(true_val))) %>% 
+  tab_footnote(
+    rbind(true_val))
+  
+# ) %>% 
+#   cols_label(
+#     stats = "Parameter set",
+#     a_accuracy = "a",
+#     t = "Ter",
+#   )
+
+
 
