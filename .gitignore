@@ -13,3 +13,4 @@ docs/build
 HDDM.egg-info/
 .Rproj.user
 R/sa_simulations/
+fortran/datasets/

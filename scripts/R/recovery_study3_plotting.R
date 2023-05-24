@@ -53,15 +53,18 @@ apa <- function(x, title = " ") {
 
 if (!file.exists(here::here("scripts", "R", "subject_generated_sim_params.RData"))) {
   
-  nts <- c(4, 10, 50, 125, 250)
+  nts <- c(1, 4, 10, 50, 125, 250)
   ns <- 1 # number of subjects
   
   res_parameter_sets <- vector(mode = "list", length = length(nts))
   
   parameter_set <- vector(mode = "list", length = 1)
-  names(parameter_set) <- letters[1]
+  names(parameter_set) <- letters[13]
   # speed, acc, ter, eta, sa, st, v1, v2, v3, v4
-  parameter_set <- c(0.08, 0.16, 0.3, 0.08, 0.15, 0.1, 0.4, 0.25, 0.1, 0.0) #set e
+  # parameter_set <- c(0.08, 0.16, 0.3, 0.08, 0.15, 0.1, 0.4, 0.25, 0.1, 0.0) #set e
+  
+  parameter_set <- c(0.08, 0.16, 0.3, 0.20, 0.15, 0.1, 0.4, 0.25, 0.1, 0.0) #set m
+  
   parmaset_temp <- parameter_set
   genparam <- vector(mode = "list")
   # Group-level means
@@ -104,10 +107,10 @@ for (i in 1:length(nts)) {
 }
 
 df_temp <- res_parameter_sets$NumberObservations_250$dataset
-# df_temp <- res_parameter_sets$NumberObservations_125$dataset
 
 #get only a single instructions
 df_temp <- df_temp[df_temp$instructions == "speed",]
+# df_temp <- df_temp[df_temp$instructions == "accuracy",]
 
 for (foo in 1:length(nts)){
 
@@ -123,7 +126,7 @@ for (fee in 1:nboots){
   boot_tempv3 <- df_tempv3[sample(1:nrow(df_tempv3), nts[foo], replace = TRUE),]
   boot_tempv4 <- df_tempv4[sample(1:nrow(df_tempv4), nts[foo], replace = TRUE),]
   
-  res_boot_datasets[[foo]][[fee]] <- rbind(boot_tempv1,boot_tempv2,boot_tempv3, boot_tempv4)
+  res_boot_datasets[[foo]][[fee]] <- rbind(boot_tempv1, boot_tempv2, boot_tempv3, boot_tempv4)
   
 }
 }
@@ -133,7 +136,7 @@ names(res_boot_datasets) <- do.call(rbind,map(nts, function(.){paste0("NumberObs
 # set_idx = 1
 
 for (set_idx in 1:nboots) {
-  data_set <-  res_boot_datasets[[1]][[set_idx]]  #where 5 is 250 trials
+  data_set <-  res_boot_datasets[[5]][[set_idx]]  #where 5 is 250 trials
   data_set$nboots <- set_idx
   prepare_fortran(data_set, letters[[5]], method = 1, condition = "SPEED", boots = TRUE)
 }
@@ -146,42 +149,77 @@ library(gt)
 
 labels <- c("a_speed", "t", "eta", "sa", "z/a","st","po", "v_1", "v_2","v_3", "v_4", "likelihood")
 
-est_data_e_250 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_250.txt",col.names = labels)
+est_data_e_250 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_250.txt",col.names = labels)
 est_data_e_250 <- est_data_e_250[seq_len(nrow(est_data_e_250)) %% 2 == 0,]
 est_data_e_250$parameter_set <- "e"
 est_data_e_250$num_trials <- 250
 
-est_data_e_125 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_125.txt",col.names = labels)
+est_data_e_125 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_125.txt",col.names = labels)
 est_data_e_125 <- est_data_e_125[seq_len(nrow(est_data_e_125)) %% 2 == 0,]
 est_data_e_125$parameter_set <- "e"
 est_data_e_125$num_trials <- 125
 
-est_data_e_50 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_50.txt",col.names = labels)
+est_data_e_50 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_50.txt",col.names = labels)
 est_data_e_50 <- est_data_e_50[seq_len(nrow(est_data_e_50)) %% 2 == 0,]
 est_data_e_50$parameter_set <- "e"
 est_data_e_50$num_trials <- 50
 
-est_data_e_10 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_10.txt",col.names = labels)
+est_data_e_10 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_10.txt",col.names = labels)
 est_data_e_10 <- est_data_e_10[seq_len(nrow(est_data_e_10)) %% 2 == 0,]
 est_data_e_10$parameter_set <- "e"
 est_data_e_10$num_trials <- 10
 
-est_data_e_4 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_4.txt",col.names = labels)
+est_data_e_4 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_4.txt",col.names = labels)
 est_data_e_4 <- est_data_e_4[seq_len(nrow(est_data_e_4)) %% 2 == 0,]
 est_data_e_4$parameter_set <- "e"
 est_data_e_4$num_trials <- 4
 
-est_data_e_1 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_e_1.txt",col.names = labels)
+est_data_e_1 <- read.table("~/Documents/hddm/scripts/fortran/boot_e_res_20230518/res_boot_e_1.txt",col.names = labels)
 est_data_e_1 <- est_data_e_1[seq_len(nrow(est_data_e_1)) %% 2 == 0,]
 est_data_e_1$parameter_set <- "e"
 est_data_e_1$num_trials <- 1
 
+est_data_m_250 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_250.txt",col.names = labels)
+est_data_m_250 <- est_data_m_250[seq_len(nrow(est_data_m_250)) %% 2 == 0,]
+est_data_m_250$parameter_set <- "m"
+est_data_m_250$num_trials <- 250
+
+est_data_m_125 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_125.txt",col.names = labels)
+est_data_m_125 <- est_data_m_125[seq_len(nrow(est_data_m_125)) %% 2 == 0,]
+est_data_m_125$parameter_set <- "m"
+est_data_m_125$num_trials <- 125
+
+est_data_m_50 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_50.txt",col.names = labels)
+est_data_m_50 <- est_data_m_50[seq_len(nrow(est_data_m_50)) %% 2 == 0,]
+est_data_m_50$parameter_set <- "m"
+est_data_m_50$num_trials <- 50
+
+est_data_m_10 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_10.txt",col.names = labels)
+est_data_m_10 <- est_data_m_10[seq_len(nrow(est_data_m_10)) %% 2 == 0,]
+est_data_m_10$parameter_set <- "m"
+est_data_m_10$num_trials <- 10
+
+est_data_m_4 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_4.txt",col.names = labels)
+est_data_m_4 <- est_data_m_4[seq_len(nrow(est_data_m_4)) %% 2 == 0,]
+est_data_m_4$parameter_set <- "m"
+est_data_m_4$num_trials <- 4
+
+est_data_m_1 <- read.table("~/Documents/hddm/scripts/fortran/res_boot_m_1.txt",col.names = labels)
+est_data_m_1 <- est_data_m_1[seq_len(nrow(est_data_m_1)) %% 2 == 0,]
+est_data_m_1$parameter_set <- "m"
+est_data_m_1$num_trials <- 1
 # est_data_all <- rbind(est_data_e_250,est_data_e_125, 
 #                       est_data_e_50,est_data_e_10, est_data_e_4
 # )
 est_data_all <- rbind(est_data_e_250,est_data_e_125, 
                       est_data_e_50,est_data_e_10,
-                      est_data_e_4, est_data_e_1)
+                      est_data_e_4, est_data_e_1,
+                      est_data_m_250,
+                      est_data_m_125, 
+                      est_data_m_50,
+                      est_data_m_10,
+                      est_data_m_4, 
+                      est_data_m_1)
 
 se <- function(x){sqrt(sum((x-mean(x))^2/(length(x)-1)))/sqrt(length(x))}
 
@@ -202,18 +240,24 @@ table_dat <- est_data_all %>%
   pivot_wider(names_from = parameters,
               values_from = estimates,) 
 
-
+res_parameter_sets
 true_val <- res_parameter_sets$NumberObservations_250$parameters[,c("a_speed","eta","sa","st", "t", 
                                                         "v_1", "v_2","v_3", "v_4")]
-true_val
+true_val <- rbind(true_val, true_val)
+true_val$eta[1] <- 0.08
 table_dat[order(table_dat$stats),]  %>%  group_by(stats) %>% apa(
   "Means and Standard Deviations of Parameter Values Recovered
 From the SIMPLEX Fitting Method Across Varying Numbers of Observations") %>% 
   tab_footnote(
     rbind(names(true_val))) %>% 
   tab_footnote(
-    rbind(true_val))
-  
+    rbind(true_val[1,])) %>% 
+  tab_footnote(
+    rbind(true_val[2,])) %>% 
+  tab_style(cell_borders(sides = "b", color = "#000000", style = "solid", weight = px(2)),
+            locations = cells_body(rows = parameter_set == "e" & num_trials == 250))
+
+
 # ) %>% 
 #   cols_label(
 #     stats = "Parameter set",
