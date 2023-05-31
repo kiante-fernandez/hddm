@@ -65,7 +65,7 @@ C     write(*,*)ich,rr,aa
       mch(i)=ich
 C change this to specific condition names
       if(aa.eq."high")mcond(i)=1
-      if(aa.eq."low")mcond(i)=2
+      if(aa.eq."vlow")mcond(i)=2
 C     write(*,"(f8.3,2i5,f8.3,i5)")yi(i),mcond(i),con(i),rt(i),mch(i)
     1 continue
       OPEN(14,STATUS='SCRATCH')

@@ -33,8 +33,8 @@ c      n=1600
 c      nn=400
 C      n=1000
 C      nn=250
-c n=500
-c nn=125
+c      n=500
+c      nn=125
 C      n=200
 C      nn=50
 C      n=40
@@ -51,7 +51,7 @@ C      nn = 4
       CALL OMP_SET_NUM_THREADS(mmc)
       ict=1
 c k is subj #
-      do 7 k=1,300
+      do 7 k=1,1
 C     if(k.ne.22.and.k.ne.28.and.k.ne.43.and.k.ne.50)go to 7
       write(d3,"(i2)")k
       d3=adjustl(d3)

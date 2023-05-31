@@ -106,7 +106,7 @@ for (nts_index in 3:length(nts)) {
   
   # Define the script content
   script_content <- '. /opt/intel/oneapi/setvars.sh\n'
-  script_content <- paste(script_content, 'ulimit -s unlimited\n', sep = '')
+  # script_content <- paste(script_content, 'ulimit -s unlimited\n', sep = '')
   
   script_content <- paste(script_content, 'ifort -O3 {filename}.f -qopenmp -qmkl\n', sep = '')
   
